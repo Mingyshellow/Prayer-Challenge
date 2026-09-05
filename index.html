@@ -315,6 +315,15 @@
   }
   .verse-label { position: relative; color: #eaf5ec; font-size: 12px; opacity: .85; margin-bottom: 10px; }
   .verse-text { position: relative; margin: 0; color: #eaf5ec; font-family: 'Gowun Dodum', sans-serif; font-size: 14px; line-height: 1.7; }
+  .verse-admin-form {
+    background: var(--surface); border: 1px solid var(--rail); border-radius: 12px;
+    padding: 14px; margin-bottom: 20px;
+  }
+  .verse-admin-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .verse-admin-form input[type="date"] {
+    width: 100%; padding: 9px 10px; border-radius: 8px; border: 1px solid var(--rail);
+    background: var(--surface-2); color: var(--text); font-size: 14px; margin-bottom: 8px;
+  }
 
   /* 오늘의 미션 확인하기 CTA */
   .mission-cta {
@@ -386,6 +395,8 @@
   }
   .mission-type-toggle label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
   .mission-type-toggle input[type="radio"] { width: 16px; height: 16px; accent-color: #f4d34a; }
+  .mission-type-toggle.on-paper { color: #2a2a2a; }
+  .mission-type-toggle.on-paper input[type="radio"] { accent-color: #b0392c; }
   .mission-title-admin-actions { display: flex; justify-content: center; gap: 14px; margin-top: 10px; }
   .photo-upload-btn {
     display: block; width: 100%; margin-bottom: 10px; padding: 12px; text-align: center;
@@ -798,7 +809,14 @@
       <!-- 3. 오늘의 말씀 -->
       <div class="verse-card">
         <div class="verse-label">오늘의 말씀</div>
-        <p class="verse-text">사람이 친구를 위하여 자기 목숨을 버리면<br/>이보다 더 큰 사랑이 없나니 (요15:13)</p>
+        <p class="verse-text" id="verse-text-el">사람이 친구를 위하여 자기 목숨을 버리면<br/>이보다 더 큰 사랑이 없나니 (요15:13)</p>
+      </div>
+
+      <div id="verse-admin-form" class="verse-admin-form" style="display:none;">
+        <label for="verse-date-input" class="verse-admin-label">말씀 등록 날짜</label>
+        <input type="date" id="verse-date-input" />
+        <textarea id="verse-content-input" placeholder="그날 보여줄 말씀 문구를 입력하세요" style="min-height:60px;"></textarea>
+        <button class="primary-btn admin-submit-btn" onclick="handleSaveVerse()">말씀 등록/수정</button>
       </div>
 
       <!-- 4. 오늘의 미션 확인하기 -->
@@ -1214,21 +1232,25 @@
     if (currentUser.role === "super_admin") {
       document.getElementById("admin-mission-form").style.display = "block";
       document.getElementById("admin-notice-form").style.display = "block";
+      document.getElementById("verse-admin-form").style.display = "block";
     }
 
     renderDdayBanner();
     await renderDashboardTrainTracks();
     await loadTrainList();
+    await loadVerse();
     await loadMissions();
     await loadNotices();
   }
 
   // ---------------- 진행 칸수 계산 (공용) ----------------
+  const PRAYERS_PER_STEP = 20; // 기도 20개 = 1칸
+
   function computeProgress(total) {
-    const steps = Math.min(50, Math.floor(total / 10));
-    const inCurrentSegment = total % 10;
-    const remaining = 10 - inCurrentSegment;
-    return { steps, pct: (inCurrentSegment / 10) * 100, remaining };
+    const steps = Math.min(50, Math.floor(total / PRAYERS_PER_STEP));
+    const inCurrentSegment = total % PRAYERS_PER_STEP;
+    const remaining = PRAYERS_PER_STEP - inCurrentSegment;
+    return { steps, pct: (inCurrentSegment / PRAYERS_PER_STEP) * 100, remaining };
   }
 
   // ---------------- 행사 D-day ----------------
@@ -1281,6 +1303,42 @@
         </div>
       `;
     }).join("");
+  }
+
+  // ---------------- 오늘의 말씀 ----------------
+  function todayIsoDate() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  async function loadVerse() {
+    const todayStr = todayIsoDate();
+    const { data } = await activeClient
+      .from("verses").select("content").eq("verse_date", todayStr).maybeSingle();
+
+    if (data?.content) {
+      document.getElementById("verse-text-el").textContent = data.content;
+    }
+    // 등록된 말씀이 없으면 HTML에 기본으로 박아둔 문구를 그대로 둠
+
+    if (currentUser.role === "super_admin") {
+      document.getElementById("verse-date-input").value = todayStr;
+      document.getElementById("verse-content-input").value = data?.content ?? "";
+    }
+  }
+
+  async function handleSaveVerse() {
+    const dateStr = document.getElementById("verse-date-input").value;
+    const content = document.getElementById("verse-content-input").value.trim();
+    if (!dateStr || !content) return;
+
+    const { error } = await activeClient
+      .from("verses")
+      .upsert({ verse_date: dateStr, content, created_by: currentUser.id }, { onConflict: "verse_date" });
+
+    if (error) { alert("저장 중 오류가 발생했어요: " + error.message); return; }
+    if (dateStr === todayIsoDate()) await loadVerse();
+    alert("말씀이 저장됐어요.");
   }
 
   // ---------------- 오늘의 미션 ----------------
@@ -1396,7 +1454,12 @@
   function startEditMissionTitle() {
     if (!currentMission) return;
     const contentEl = document.getElementById("mission-title-content");
+    const isPhoto = currentMission.mission_type === "photo";
     contentEl.innerHTML = `<textarea id="mission-title-edit-textarea" style="width:100%; font-family:'Gaegu',cursive; font-size:17px; text-align:center; min-height:60px;"></textarea>
+      <div class="mission-type-toggle on-paper" style="margin-top:8px;">
+        <label><input type="radio" name="edit-mission-type" value="text" ${!isPhoto ? "checked" : ""} /> 텍스트형</label>
+        <label><input type="radio" name="edit-mission-type" value="photo" ${isPhoto ? "checked" : ""} /> 사진형</label>
+      </div>
       <div class="mission-title-admin-actions">
         <button class="mini-link-btn" onclick="saveMissionTitleEdit()">저장</button>
         <button class="mini-link-btn" onclick="loadMissions()">취소</button>
@@ -1407,8 +1470,9 @@
 
   async function saveMissionTitleEdit() {
     const content = document.getElementById("mission-title-edit-textarea").value.trim();
+    const missionType = document.querySelector('input[name="edit-mission-type"]:checked').value;
     if (!content || !currentMission) return;
-    const { error } = await activeClient.from("missions").update({ content }).eq("id", currentMission.id);
+    const { error } = await activeClient.from("missions").update({ content, mission_type: missionType }).eq("id", currentMission.id);
     if (!error) await loadMissions();
   }
 
