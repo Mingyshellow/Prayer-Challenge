@@ -941,18 +941,18 @@
         <span class="browser-icon">★</span><span class="browser-icon">⋮</span>
       </div>
       <div class="browser-body">
-        <textarea id="mm-textarea" style="display:none;" oninput="mmToggleRegisterBtn()"></textarea>
-        <div id="mm-photo-picker" style="display:none;">
-          <button type="button" class="photo-picker-btn" onclick="document.getElementById('mm-file-input').click()">📷 사진 선택하기</button>
+        <textarea id="mm-textarea" oninput="mmToggleRegisterBtn()"></textarea>
+
+        <div id="mm-photo-attach" style="display:none;">
+          <button type="button" class="photo-picker-btn" onclick="document.getElementById('mm-file-input').click()">📷 사진 첨부 (선택)</button>
           <div class="photo-picker-filename" id="mm-photo-filename"></div>
-          <div class="photo-picker-hint">* 사진은 필수예요. 아래 문구는 선택사항이에요.</div>
-          <textarea id="mm-caption-textarea" placeholder="사진과 함께 남길 말 (선택)" style="margin-top:6px; min-height:70px;" oninput="mmToggleRegisterBtn()"></textarea>
+          <img id="mm-photo-preview" style="display:none; max-width:100%; border-radius:8px; margin-top:8px;" />
         </div>
         <input type="file" id="mm-file-input" accept="image/*" style="display:none;" onchange="mmFileSelected()" />
-        <div id="mm-view-text" style="display:none;"></div>
-        <div id="mm-view-photo-wrap" style="display:none;">
-          <img id="mm-view-image" style="max-width:100%; border-radius:8px;" />
-          <p id="mm-view-caption" style="font-family:'Gaegu',cursive; font-size:15px; color:#2a2a2a; margin-top:10px; white-space:pre-wrap;"></p>
+
+        <div id="mm-view-wrap" style="display:none;">
+          <img id="mm-view-image" style="display:none; max-width:100%; border-radius:8px; margin-bottom:10px;" />
+          <div id="mm-view-text"></div>
         </div>
       </div>
       <div class="browser-footer">
@@ -1398,7 +1398,7 @@
 
     const { data: entries } = await activeClient
       .from("mission_completions")
-      .select("id, user_id, content, caption, profiles(name, groups(name))")
+      .select("id, user_id, content, photo_url, profiles(name, groups(name))")
       .eq("mission_id", currentMission.id)
       .not("content", "is", null)
       .order("completed_at");
@@ -1421,13 +1421,11 @@
       const color = GROUP_NOTE_COLOR[groupName] ?? "bg-cream";
       const rotate = (Math.random() * 8 - 4).toFixed(1);
       const hasTape = Math.random() < 0.4;
-      const photo = currentMission.mission_type === "photo";
       return `
         <div class="note-card ${shape} ${color}" style="transform: rotate(${rotate}deg);" onclick="openNoteView(${i})">
           ${hasTape ? '<div class="note-tape-corner"></div>' : ""}
-          ${photo
-            ? `<img class="note-photo-thumb" src="${e.content}" />${e.caption ? '<div class="note-preview note-caption-preview"></div>' : ""}`
-            : '<div class="note-preview"></div>'}
+          ${e.photo_url ? `<img class="note-photo-thumb" src="${e.photo_url}" />` : ""}
+          <div class="note-preview"></div>
           <div class="note-author"></div>
         </div>
       `;
@@ -1436,13 +1434,7 @@
     const cardEls = notesWrap.querySelectorAll(".note-card");
     missionEntriesCache.forEach((e, i) => {
       const card = cardEls[i];
-      const isPhoto = currentMission.mission_type === "photo";
-      if (isPhoto) {
-        const captionEl = card.querySelector(".note-caption-preview");
-        if (captionEl) captionEl.textContent = e.caption;
-      } else {
-        card.querySelector(".note-preview").textContent = e.content;
-      }
+      card.querySelector(".note-preview").textContent = e.content;
       card.querySelector(".note-author").textContent = `- ${e.profiles?.name ?? "이름없음"}`;
     });
   }
@@ -1501,19 +1493,27 @@
 
   function mmToggleRegisterBtn() {
     const btn = document.getElementById("mm-register-btn");
-    if (isPhotoMission()) {
-      const fileInput = document.getElementById("mm-file-input");
-      btn.disabled = !(fileInput.files && fileInput.files.length > 0);
-    } else {
-      btn.disabled = document.getElementById("mm-textarea").value.trim().length === 0;
-    }
+    btn.disabled = document.getElementById("mm-textarea").value.trim().length === 0;
   }
 
   function mmFileSelected() {
     const fileInput = document.getElementById("mm-file-input");
     const file = fileInput.files && fileInput.files[0];
-    document.getElementById("mm-photo-filename").textContent = file ? `선택됨: ${file.name}` : "";
-    mmToggleRegisterBtn();
+    const filenameEl = document.getElementById("mm-photo-filename");
+    const previewEl = document.getElementById("mm-photo-preview");
+
+    if (file) {
+      filenameEl.textContent = `선택됨: ${file.name}`;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewEl.src = e.target.result;
+        previewEl.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    } else {
+      filenameEl.textContent = "";
+      previewEl.style.display = "none";
+    }
   }
 
   let missionEditEntryId = null; // null = 새 글 작성 모드, id 있으면 해당 글 열람/수정 모드
@@ -1535,14 +1535,12 @@
     document.getElementById("mm-name").textContent = currentUser.name;
     document.getElementById("mm-address").textContent = `오늘의 미션: ${currentMission.content}`;
 
-    document.getElementById("mm-textarea").style.display = photo ? "none" : "block";
     document.getElementById("mm-textarea").value = "";
-    document.getElementById("mm-photo-picker").style.display = photo ? "block" : "none";
+    document.getElementById("mm-photo-attach").style.display = photo ? "block" : "none";
     document.getElementById("mm-file-input").value = "";
     document.getElementById("mm-photo-filename").textContent = "";
-    document.getElementById("mm-caption-textarea").value = "";
-    document.getElementById("mm-view-text").style.display = "none";
-    document.getElementById("mm-view-photo-wrap").style.display = "none";
+    document.getElementById("mm-photo-preview").style.display = "none";
+    document.getElementById("mm-view-wrap").style.display = "none";
 
     document.getElementById("mm-register-btn").style.display = "inline-block";
     document.getElementById("mm-register-btn").textContent = "등록";
@@ -1558,25 +1556,23 @@
     const entry = missionEntriesCache[idx];
     if (!entry) return;
     missionEditEntryId = entry.id;
-    const photo = isPhotoMission();
 
     document.getElementById("mm-group").textContent = entry.profiles?.groups?.name ?? "-";
     document.getElementById("mm-name").textContent = entry.profiles?.name ?? "-";
     document.getElementById("mm-address").textContent = `오늘의 미션: ${currentMission.content}`;
 
     document.getElementById("mm-textarea").style.display = "none";
-    document.getElementById("mm-photo-picker").style.display = "none";
+    document.getElementById("mm-photo-attach").style.display = "none";
+    document.getElementById("mm-view-wrap").style.display = "block";
 
-    if (photo) {
-      document.getElementById("mm-view-text").style.display = "none";
-      document.getElementById("mm-view-photo-wrap").style.display = "block";
-      document.getElementById("mm-view-image").src = entry.content;
-      document.getElementById("mm-view-caption").textContent = entry.caption ?? "";
+    const viewImg = document.getElementById("mm-view-image");
+    if (entry.photo_url) {
+      viewImg.src = entry.photo_url;
+      viewImg.style.display = "block";
     } else {
-      document.getElementById("mm-view-photo-wrap").style.display = "none";
-      document.getElementById("mm-view-text").style.display = "block";
-      document.getElementById("mm-view-text").textContent = entry.content;
+      viewImg.style.display = "none";
     }
+    document.getElementById("mm-view-text").textContent = entry.content;
 
     const isMine = entry.user_id === currentUser.id;
     document.getElementById("mm-register-btn").style.display = "none";
@@ -1592,22 +1588,20 @@
     if (!entry) return;
     const photo = isPhotoMission();
 
-    document.getElementById("mm-view-text").style.display = "none";
-    document.getElementById("mm-view-photo-wrap").style.display = "none";
+    document.getElementById("mm-view-wrap").style.display = "none";
+    document.getElementById("mm-textarea").style.display = "block";
+    document.getElementById("mm-textarea").value = entry.content;
 
-    if (photo) {
-      document.getElementById("mm-photo-picker").style.display = "block";
-      document.getElementById("mm-file-input").value = "";
-      document.getElementById("mm-photo-filename").textContent = "";
-      document.getElementById("mm-caption-textarea").value = entry.caption ?? "";
-    } else {
-      document.getElementById("mm-textarea").style.display = "block";
-      document.getElementById("mm-textarea").value = entry.content;
-    }
+    document.getElementById("mm-photo-attach").style.display = photo ? "block" : "none";
+    document.getElementById("mm-file-input").value = "";
+    document.getElementById("mm-photo-filename").textContent = entry.photo_url ? "기존 사진 유지 중 (새로 고르면 교체됨)" : "";
+    const previewEl = document.getElementById("mm-photo-preview");
+    if (entry.photo_url) { previewEl.src = entry.photo_url; previewEl.style.display = "block"; }
+    else previewEl.style.display = "none";
 
     document.getElementById("mm-register-btn").style.display = "inline-block";
     document.getElementById("mm-register-btn").textContent = "저장";
-    document.getElementById("mm-register-btn").disabled = photo; // 사진은 새로 골라야 활성화
+    document.getElementById("mm-register-btn").disabled = false;
     document.getElementById("mm-edit-btn").style.display = "none";
     document.getElementById("mm-delete-btn").style.display = "none";
   }
@@ -1621,38 +1615,43 @@
 
   async function handleMissionRegister() {
     if (!currentMission) return;
+    const content = document.getElementById("mm-textarea").value.trim();
+    if (!content) return;
+
     const photo = isPhotoMission();
     const btn = document.getElementById("mm-register-btn");
-    let content;
-    let caption = null;
+    let photoUrl; // undefined = 기존 값 유지(수정 시), null = 사진 없음(신규 시 기본값)
 
     if (photo) {
       const fileInput = document.getElementById("mm-file-input");
       const file = fileInput.files && fileInput.files[0];
-      if (!file) { alert("사진을 선택해주세요."); return; }
-      caption = document.getElementById("mm-caption-textarea").value.trim() || null;
 
-      btn.disabled = true; btn.textContent = "업로드 중...";
-      const filePath = `${currentMission.id}/${currentUser.id}-${Date.now()}-${file.name}`;
-      const { error: uploadError } = await activeClient.storage.from("mission-photos").upload(filePath, file);
-      btn.textContent = missionEditEntryId ? "저장" : "등록";
+      if (file) {
+        btn.disabled = true; btn.textContent = "업로드 중...";
+        const filePath = `${currentMission.id}/${currentUser.id}-${Date.now()}-${file.name}`;
+        const { error: uploadError } = await activeClient.storage.from("mission-photos").upload(filePath, file);
+        btn.textContent = missionEditEntryId ? "저장" : "등록";
 
-      if (uploadError) { alert("사진 업로드 중 오류가 발생했어요: " + uploadError.message); btn.disabled = false; return; }
+        if (uploadError) { alert("사진 업로드 중 오류가 발생했어요: " + uploadError.message); btn.disabled = false; return; }
 
-      const { data: urlData } = activeClient.storage.from("mission-photos").getPublicUrl(filePath);
-      content = urlData.publicUrl;
-    } else {
-      content = document.getElementById("mm-textarea").value.trim();
-      if (!content) return;
+        const { data: urlData } = activeClient.storage.from("mission-photos").getPublicUrl(filePath);
+        photoUrl = urlData.publicUrl;
+      } else if (!missionEditEntryId) {
+        photoUrl = null; // 신규 작성인데 사진 안 골랐으면 사진 없이 등록
+      }
+      // 수정 모드에서 새 파일 선택 안 했으면 photoUrl은 undefined → 기존 값 그대로 둠
     }
 
     if (missionEditEntryId) {
-      const { error } = await activeClient.from("mission_completions").update({ content, caption }).eq("id", missionEditEntryId);
+      const payload = { content };
+      if (photoUrl !== undefined) payload.photo_url = photoUrl;
+      const { error } = await activeClient.from("mission_completions").update(payload).eq("id", missionEditEntryId);
       if (!error) { closeMissionModal(); await loadMissions(); }
       else alert("저장 중 오류가 발생했어요: " + error.message);
     } else {
       const { error } = await activeClient.from("mission_completions").insert({
-        mission_id: currentMission.id, user_id: currentUser.id, content, caption
+        mission_id: currentMission.id, user_id: currentUser.id, content,
+        photo_url: photo ? (photoUrl ?? null) : null
       });
       if (!error) { closeMissionModal(); await loadMissions(); }
       else alert("저장 중 오류가 발생했어요: " + error.message);
