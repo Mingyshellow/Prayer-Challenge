@@ -400,6 +400,9 @@
   .note-card .note-author {
     margin-top: 8px; font-size: 12px; text-align: right; opacity: .75; font-weight: 700;
   }
+  .note-photo-thumb {
+    display: block; width: 100%; border-radius: 6px; object-fit: cover; max-height: 140px;
+  }
   .note-card.shape-torn {
     background-image: repeating-linear-gradient(180deg, transparent 0 20px, rgba(0,0,0,0.08) 20px 21px);
   }
@@ -421,26 +424,6 @@
   .note-tape-corner {
     position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(-4deg);
     width: 50px; height: 20px; background: rgba(210,150,150,0.55);
-  }
-
-  /* 사진형 미션 노트 (폴라로이드 느낌) */
-  .note-card.has-photo { padding: 9px 9px 6px; }
-  .note-photo-thumb {
-    display: block; width: 100%; aspect-ratio: 1 / 1;
-    object-fit: cover; border-radius: 2px;
-    background: #e0d6c2 url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><text x='50%' y='58%' font-size='20' text-anchor='middle' fill='%23a89a80'>🖼</text></svg>") center/40px no-repeat;
-  }
-  .note-card.has-photo .note-author { margin-top: 7px; }
-
-  /* 미션 모달 - 파일 선택 & 미리보기 */
-  #mm-file-input {
-    width: 100%; box-sizing: border-box; padding: 12px;
-    border: 2px dashed #c9b48c; border-radius: 8px; background: #fdf8ec;
-    font-family: 'Pretendard', sans-serif; font-size: 13px; color: #6a5238; cursor: pointer;
-  }
-  #mm-file-preview {
-    display: none; width: 100%; margin-top: 10px; border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.22);
   }
 
   /* ---------- 미니 브라우저 모달 (미션 작성/열람) ---------- */
@@ -918,7 +901,6 @@
       <div class="browser-body">
         <textarea id="mm-textarea" style="display:none;" oninput="mmToggleRegisterBtn()"></textarea>
         <input type="file" id="mm-file-input" accept="image/*" style="display:none;" onchange="mmToggleRegisterBtn()" />
-        <img id="mm-file-preview" alt="선택한 사진 미리보기" />
         <div id="mm-view-text" style="display:none;"></div>
         <img id="mm-view-image" style="display:none; max-width:100%; border-radius:8px;" />
       </div>
@@ -1050,14 +1032,6 @@
   // 실제 로그인 이후 모든 요청은 이 변수를 통해 나갑니다 (로그인 시점에 결정됨)
   let activeClient = sbPersistent;
   let currentUser = { id: null, name: null, groupId: null, groupName: null, role: "member" };
-
-  // ---------------- 공용 유틸 ----------------
-  // innerHTML 템플릿에 값을 넣을 때 따옴표/꺾쇠 깨짐 방지
-  function escapeAttr(str) {
-    return String(str ?? "")
-      .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  }
 
   // ---------------- 목장 드롭다운 채우기 ----------------
   async function loadGroups() {
@@ -1350,20 +1324,18 @@
       "딜라이트": "bg-lilac"
     };
 
-    const photo = currentMission.mission_type === "photo";
-
     notesWrap.innerHTML = missionEntriesCache.map((e, i) => {
-      // 사진형은 이미지가 잘리지 않도록 클립되는 모양(하트/구름)을 쓰지 않음
-      const shape = photo ? "has-photo" : NOTE_SHAPES[Math.floor(Math.random() * NOTE_SHAPES.length)];
+      const shape = NOTE_SHAPES[Math.floor(Math.random() * NOTE_SHAPES.length)];
       const groupName = e.profiles?.groups?.name;
       const color = GROUP_NOTE_COLOR[groupName] ?? "bg-cream";
       const rotate = (Math.random() * 8 - 4).toFixed(1);
       const hasTape = Math.random() < 0.4;
+      const photo = currentMission.mission_type === "photo";
       return `
         <div class="note-card ${shape} ${color}" style="transform: rotate(${rotate}deg);" onclick="openNoteView(${i})">
           ${hasTape ? '<div class="note-tape-corner"></div>' : ""}
           ${photo
-            ? `<img class="note-photo-thumb" src="${escapeAttr(e.content)}" alt="" loading="lazy" />`
+            ? `<img class="note-photo-thumb" src="${e.content}" />`
             : '<div class="note-preview"></div>'}
           <div class="note-author"></div>
         </div>
@@ -1426,42 +1398,14 @@
     return currentMission?.mission_type === "photo";
   }
 
-  const MAX_PHOTO_MB = 5;
-
-  function mmClearPreview() {
-    const preview = document.getElementById("mm-file-preview");
-    if (preview.src) URL.revokeObjectURL(preview.src);
-    preview.removeAttribute("src");
-    preview.style.display = "none";
-  }
-
   function mmToggleRegisterBtn() {
     const btn = document.getElementById("mm-register-btn");
-
-    if (!isPhotoMission()) {
+    if (isPhotoMission()) {
+      const fileInput = document.getElementById("mm-file-input");
+      btn.disabled = !(fileInput.files && fileInput.files.length > 0);
+    } else {
       btn.disabled = document.getElementById("mm-textarea").value.trim().length === 0;
-      return;
     }
-
-    const fileInput = document.getElementById("mm-file-input");
-    const file = fileInput.files && fileInput.files[0];
-    mmClearPreview();
-
-    if (!file) { btn.disabled = true; return; }
-
-    if (!file.type.startsWith("image/")) {
-      alert("이미지 파일만 올릴 수 있어요.");
-      fileInput.value = ""; btn.disabled = true; return;
-    }
-    if (file.size > MAX_PHOTO_MB * 1024 * 1024) {
-      alert(`사진 용량이 너무 커요. ${MAX_PHOTO_MB}MB 이하로 올려주세요.`);
-      fileInput.value = ""; btn.disabled = true; return;
-    }
-
-    const preview = document.getElementById("mm-file-preview");
-    preview.src = URL.createObjectURL(file);
-    preview.style.display = "block";
-    btn.disabled = false;
   }
 
   let missionEditEntryId = null; // null = 새 글 작성 모드, id 있으면 해당 글 열람/수정 모드
@@ -1487,7 +1431,6 @@
     document.getElementById("mm-textarea").value = "";
     document.getElementById("mm-file-input").style.display = photo ? "block" : "none";
     document.getElementById("mm-file-input").value = "";
-    mmClearPreview();
     document.getElementById("mm-view-text").style.display = "none";
     document.getElementById("mm-view-image").style.display = "none";
 
@@ -1513,7 +1456,6 @@
 
     document.getElementById("mm-textarea").style.display = "none";
     document.getElementById("mm-file-input").style.display = "none";
-    mmClearPreview();
 
     if (photo) {
       document.getElementById("mm-view-text").style.display = "none";
@@ -1545,12 +1487,9 @@
     if (photo) {
       document.getElementById("mm-file-input").style.display = "block";
       document.getElementById("mm-file-input").value = "";
-      mmClearPreview();
-      document.getElementById("mm-footer-note").textContent = "새 사진을 선택하면 교체됩니다";
     } else {
       document.getElementById("mm-textarea").style.display = "block";
       document.getElementById("mm-textarea").value = entry.content;
-      document.getElementById("mm-footer-note").textContent = "";
     }
 
     document.getElementById("mm-register-btn").style.display = "inline-block";
@@ -1561,7 +1500,6 @@
   }
 
   function closeMissionModal() {
-    mmClearPreview();
     document.getElementById("mission-modal-overlay").classList.remove("active");
   }
   document.getElementById("mission-modal-overlay").addEventListener("click", (e) => {
@@ -1580,12 +1518,8 @@
       if (!file) { alert("사진을 선택해주세요."); return; }
 
       btn.disabled = true; btn.textContent = "업로드 중...";
-      // 한글/공백 파일명은 Storage 키에서 문제가 될 수 있어 확장자만 사용
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-      const filePath = `${currentMission.id}/${currentUser.id}-${Date.now()}.${ext || "jpg"}`;
-      const { error: uploadError } = await activeClient.storage
-        .from("mission-photos")
-        .upload(filePath, file, { cacheControl: "3600", contentType: file.type });
+      const filePath = `${currentMission.id}/${currentUser.id}-${Date.now()}-${file.name}`;
+      const { error: uploadError } = await activeClient.storage.from("mission-photos").upload(filePath, file);
       btn.textContent = missionEditEntryId ? "저장" : "등록";
 
       if (uploadError) { alert("사진 업로드 중 오류가 발생했어요: " + uploadError.message); btn.disabled = false; return; }
