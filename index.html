@@ -295,7 +295,7 @@
     background: repeating-linear-gradient(90deg, #caa876 0 8px, transparent 8px 16px);
   }
   .track-rail-fill {
-    position: absolute; inset: 0; border-radius: 4px;
+    position: absolute; top: 0; left: 0; bottom: 0; min-width: 5%; border-radius: 4px;
   }
   .track-name-tag {
     flex-shrink: 0; border: 2px solid; border-radius: 999px; padding: 4px 12px;
@@ -375,15 +375,25 @@
     font-family: 'Gaegu', cursive; font-size: 15px; text-align: center;
     transform: rotate(-2deg); box-shadow: 0 8px 16px rgba(0,0,0,0.28); border-radius: 2px;
   }
-  .corkboard-admin-form { max-width: 300px; margin: 0 auto 20px; }
+  .corkboard-admin-form {
+    max-width: 300px; margin: 0 auto 20px; background: #3a2a1c; border-radius: 10px;
+    padding: 14px 14px 16px; box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+  }
   .corkboard-admin-form textarea { font-family: 'Gaegu', cursive; font-size: 16px; }
   .mission-type-toggle {
-    display: flex; gap: 16px; justify-content: center; margin-bottom: 10px;
-    font-size: 13px; color: #fdf3e0; font-family: 'Pretendard', sans-serif;
+    display: flex; gap: 16px; justify-content: center; margin-bottom: 12px;
+    font-size: 13.5px; color: #fdf3e0; font-family: 'Pretendard', sans-serif; font-weight: 600;
   }
-  .mission-type-toggle label { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  .mission-type-toggle label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .mission-type-toggle input[type="radio"] { width: 16px; height: 16px; accent-color: #f4d34a; }
   .mission-title-admin-actions { display: flex; justify-content: center; gap: 14px; margin-top: 10px; }
-  #new-mission-photo { color: #fdf3e0; font-size: 13px; margin-bottom: 10px; }
+  .photo-upload-btn {
+    display: block; width: 100%; margin-bottom: 10px; padding: 12px; text-align: center;
+    background: #fdf3e0; border: 2px dashed #cbb896; border-radius: 8px; color: #4a2e1a;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .photo-upload-btn:hover { background: #fff; }
+  .photo-upload-filename { color: #fdf3e0; font-size: 12px; margin: -4px 0 10px; text-align: center; word-break: break-all; }
 
   .corkboard-notes {
     display: flex; flex-wrap: wrap; gap: 18px 14px; justify-content: center; padding: 0 6px;
@@ -451,6 +461,13 @@
   }
   .browser-body textarea:focus { outline: none; }
   #mm-view-text { font-family: 'Gaegu', cursive; font-size: 16px; line-height: 1.6; white-space: pre-wrap; color: #2a2a2a; }
+  .photo-picker-btn {
+    display: block; width: 100%; padding: 40px 16px; text-align: center;
+    background: #f5f5f5; border: 2px dashed #bbb; border-radius: 10px; color: #556;
+    font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  .photo-picker-btn:hover { background: #eee; }
+  .photo-picker-filename { color: #556; font-size: 12px; margin-top: 8px; text-align: center; word-break: break-all; }
   .browser-footer {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 16px; background: #fff; border-top: 1px solid #eaeaea;
@@ -531,7 +548,7 @@
   .train-mine-tag { font-size: 10px; color: var(--amber); font-family: 'JetBrains Mono', monospace; }
   .train-step-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--amber); }
   .train-mini-bar-track { height: 5px; border-radius: 999px; background: var(--rail); margin-top: 10px; overflow: hidden; }
-  .train-mini-bar-fill { height: 100%; background: var(--amber); border-radius: 999px; }
+  .train-mini-bar-fill { height: 100%; min-width: 5%; background: var(--amber); border-radius: 999px; }
 
   /* ---------- 좌석선택 전체화면 (KTX 스타일) ---------- */
   .seat-screen {
@@ -560,8 +577,11 @@
   .seat-legend { display: flex; justify-content: center; gap: 16px; font-size: 11.5px; color: #556; }
   .seat-progress-block { margin: 6px 0 12px; }
   .seat-progress-line { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #0d3b66; margin-bottom: 6px; }
-  .seat-progress-track { height: 7px; border-radius: 999px; background: #e2e8ee; overflow: hidden; }
-  .seat-progress-fill { height: 100%; background: #4a90d9; border-radius: 999px; transition: width .3s ease; }
+  .seat-progress-track { height: 7px; border-radius: 999px; background: #e2e8ee; overflow: hidden; display: flex; }
+  .seat-progress-fill { height: 100%; min-width: 5%; background: #4a90d9; border-radius: 999px; transition: width .3s ease; box-shadow: 0 0 6px rgba(74,144,217,0.6); }
+  .seat-progress-sub { font-size: 11px; color: #6a7688; margin-top: 5px; }
+  .seat-progress-mini-track { height: 4px; border-radius: 999px; background: #e2e8ee; overflow: hidden; margin-top: 3px; }
+  .seat-progress-mini-fill { height: 100%; background: #9dc6ef; border-radius: 999px; transition: width .3s ease; }
   .legend-dot { width: 11px; height: 11px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: -1px; }
   .legend-dot.grey { background: #b7bfc9; }
   .legend-dot.blue { background: #bcdcf2; }
@@ -822,6 +842,8 @@
         <div class="seat-progress-block">
           <div class="seat-progress-line" id="seat-progress-line">기차 0/50칸 이동</div>
           <div class="seat-progress-track"><div class="seat-progress-fill" id="seat-progress-fill" style="width:0%"></div></div>
+          <div class="seat-progress-sub" id="seat-progress-sub"></div>
+          <div class="seat-progress-mini-track"><div class="seat-progress-mini-fill" id="seat-progress-mini-fill" style="width:0%"></div></div>
         </div>
 
         <div class="seat-legend">
@@ -900,7 +922,11 @@
       </div>
       <div class="browser-body">
         <textarea id="mm-textarea" style="display:none;" oninput="mmToggleRegisterBtn()"></textarea>
-        <input type="file" id="mm-file-input" accept="image/*" style="display:none;" onchange="mmToggleRegisterBtn()" />
+        <div id="mm-photo-picker" style="display:none;">
+          <button type="button" class="photo-picker-btn" onclick="document.getElementById('mm-file-input').click()">📷 사진 선택하기</button>
+          <div class="photo-picker-filename" id="mm-photo-filename"></div>
+        </div>
+        <input type="file" id="mm-file-input" accept="image/*" style="display:none;" onchange="mmFileSelected()" />
         <div id="mm-view-text" style="display:none;"></div>
         <img id="mm-view-image" style="display:none; max-width:100%; border-radius:8px;" />
       </div>
@@ -1408,6 +1434,13 @@
     }
   }
 
+  function mmFileSelected() {
+    const fileInput = document.getElementById("mm-file-input");
+    const file = fileInput.files && fileInput.files[0];
+    document.getElementById("mm-photo-filename").textContent = file ? `선택됨: ${file.name}` : "";
+    mmToggleRegisterBtn();
+  }
+
   let missionEditEntryId = null; // null = 새 글 작성 모드, id 있으면 해당 글 열람/수정 모드
 
   function openMissionWriteModal() {
@@ -1429,8 +1462,9 @@
 
     document.getElementById("mm-textarea").style.display = photo ? "none" : "block";
     document.getElementById("mm-textarea").value = "";
-    document.getElementById("mm-file-input").style.display = photo ? "block" : "none";
+    document.getElementById("mm-photo-picker").style.display = photo ? "block" : "none";
     document.getElementById("mm-file-input").value = "";
+    document.getElementById("mm-photo-filename").textContent = "";
     document.getElementById("mm-view-text").style.display = "none";
     document.getElementById("mm-view-image").style.display = "none";
 
@@ -1455,7 +1489,7 @@
     document.getElementById("mm-address").textContent = `오늘의 미션: ${currentMission.content}`;
 
     document.getElementById("mm-textarea").style.display = "none";
-    document.getElementById("mm-file-input").style.display = "none";
+    document.getElementById("mm-photo-picker").style.display = "none";
 
     if (photo) {
       document.getElementById("mm-view-text").style.display = "none";
@@ -1485,8 +1519,9 @@
     document.getElementById("mm-view-image").style.display = "none";
 
     if (photo) {
-      document.getElementById("mm-file-input").style.display = "block";
+      document.getElementById("mm-photo-picker").style.display = "block";
       document.getElementById("mm-file-input").value = "";
+      document.getElementById("mm-photo-filename").textContent = "";
     } else {
       document.getElementById("mm-textarea").style.display = "block";
       document.getElementById("mm-textarea").value = entry.content;
