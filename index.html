@@ -382,6 +382,14 @@
     padding: 14px 14px 16px; box-shadow: 0 6px 14px rgba(0,0,0,0.3);
   }
   .corkboard-admin-form textarea { font-family: 'Gaegu', cursive; font-size: 16px; }
+  .mission-type-toggle {
+    display: flex; gap: 16px; justify-content: center; margin-bottom: 12px;
+    font-size: 13.5px; color: #fdf3e0; font-family: 'Pretendard', sans-serif; font-weight: 600;
+  }
+  .mission-type-toggle label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .mission-type-toggle input[type="radio"] { width: 16px; height: 16px; accent-color: #f4d34a; }
+  .mission-type-toggle.on-paper { color: #2a2a2a; }
+  .mission-type-toggle.on-paper input[type="radio"] { accent-color: #b0392c; }
   .mission-title-admin-actions { display: flex; justify-content: center; gap: 14px; margin-top: 10px; }
   .photo-upload-btn {
     display: block; width: 100%; margin-bottom: 10px; padding: 12px; text-align: center;
@@ -396,31 +404,20 @@
   }
   .note-card {
     flex: 1 1 110px; max-width: 150px; min-width: 96px;
+    aspect-ratio: 1 / 1;
     padding: 14px 12px; font-family: 'Gaegu', cursive; font-size: 13.5px;
     line-height: 1.5; color: #2a2a2a; cursor: pointer; position: relative;
     box-shadow: 0 6px 14px rgba(0,0,0,0.28); box-sizing: border-box;
+    border-radius: 4px;
   }
   .note-card .note-preview {
     display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
   }
-  .note-card .note-author {
-    margin-top: 8px; font-size: 12px; text-align: right; opacity: .75; font-weight: 700;
-  }
   .note-photo-thumb {
-    display: block; width: 100%; border-radius: 6px; object-fit: cover; max-height: 140px;
+    display: block; width: 100%; border-radius: 4px; object-fit: cover; height: 100%;
   }
-  .note-caption-preview { margin-top: 6px; -webkit-line-clamp: 2; }
-  .note-card.shape-torn {
-    background-image: repeating-linear-gradient(180deg, transparent 0 20px, rgba(0,0,0,0.08) 20px 21px);
-  }
-  .note-card.shape-heart {
-    padding-top: 28px; text-align: center;
-    clip-path: path('M74,140 C10,95 0,55 20,30 C38,8 65,10 74,35 C83,10 110,8 128,30 C148,55 138,95 74,140 Z');
-    width: 150px; height: 150px; flex: 0 0 150px;
-  }
-  .note-card.shape-cloud {
-    border: 2px dashed rgba(0,0,0,0.2);
-    border-radius: 24px 6px 24px 6px / 6px 24px 6px 24px;
+  .note-square {
+    background-image: repeating-linear-gradient(180deg, transparent 0 20px, rgba(0,0,0,0.07) 20px 21px);
   }
   .note-card.bg-cream { background-color: #fdf8ec; }
   .note-card.bg-sky { background-color: #eaf3fb; }
@@ -428,10 +425,8 @@
   .note-card.bg-mint { background-color: #eafbf1; }
   .note-card.bg-pink { background-color: #f3c9d0; }
   .note-card.bg-lilac { background-color: #ebe3f7; }
-  .note-tape-corner {
-    position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(-4deg);
-    width: 50px; height: 20px; background: rgba(210,150,150,0.55);
-  }
+  .note-card.bg-lime { background-color: #e4f3c4; }
+  .note-card.bg-yellow { background-color: #fdefac; }
 
   /* ---------- 미니 브라우저 모달 (미션 작성/열람) ---------- */
   .browser-modal { background: #e6e6e6; max-width: 340px; }
@@ -871,6 +866,10 @@
         <div class="corkboard-empty-note placeholder-note" id="mission-empty-note" style="display:none;">아직 등록된 미션이 없어요</div>
 
         <div id="admin-mission-form" class="corkboard-admin-form" style="display:none;">
+          <div class="mission-type-toggle">
+            <label><input type="radio" name="new-mission-type" value="text" checked /> 텍스트형</label>
+            <label><input type="radio" name="new-mission-type" value="photo" /> 사진형</label>
+          </div>
           <textarea id="new-mission-content" placeholder="오늘의 미션 내용을 입력하세요" style="min-height:50px;"></textarea>
           <button class="primary-btn admin-submit-btn" onclick="handleAddMission()">미션 등록</button>
         </div>
@@ -1258,6 +1257,17 @@
   };
   function colorForGroup(name) { return GROUP_COLORS[name] ?? "#8a97a8"; }
 
+  // 실제 가입 여부와 무관한 공식 목장 정원 (미가입자까지 포함한 전체 인원수)
+  const GROUP_TOTAL_MEMBERS = {
+    "딜라이트": 10,
+    "빛과소금": 16,
+    "에베드": 11,
+    "하존": 12,
+    "헤브론": 12,
+    "호크마": 17
+  };
+  function officialGroupSize(name, fallback) { return GROUP_TOTAL_MEMBERS[name] ?? fallback; }
+
   async function renderDashboardTrainTracks() {
     const wrap = document.getElementById("dashboard-train-tracks");
     const { data: groups } = await activeClient.from("groups").select("id, name").order("name");
@@ -1347,7 +1357,7 @@
     const dateStr = dateStrFor(missionDateOffset);
 
     const { data: missions } = await activeClient
-      .from("missions").select("id, content").eq("mission_date", dateStr).order("created_at", { ascending: false }).limit(1);
+      .from("missions").select("id, content, mission_type").eq("mission_date", dateStr).order("created_at", { ascending: false }).limit(1);
 
     currentMission = (missions && missions[0]) || null;
 
@@ -1376,42 +1386,35 @@
       .from("mission_completions")
       .select("id, user_id, content, photo_url, profiles(name, groups(name))")
       .eq("mission_id", currentMission.id)
-      .not("content", "is", null)
+      .or("content.not.is.null,photo_url.not.is.null")
       .order("completed_at");
 
     missionEntriesCache = entries ?? [];
 
-    const NOTE_SHAPES = ["shape-torn", "shape-cloud", "shape-heart"];
     const GROUP_NOTE_COLOR = {
-      "빛과소금": "bg-pink",
-      "호크마": "bg-peach",
-      "헤브론": "bg-cream",
-      "하존": "bg-mint",
+      "헤브론": "bg-pink",
+      "딜라이트": "bg-lilac",
+      "하존": "bg-lime",
+      "호크마": "bg-yellow",
       "에베드": "bg-sky",
-      "딜라이트": "bg-lilac"
+      "빛과소금": "bg-mint"
     };
 
     notesWrap.innerHTML = missionEntriesCache.map((e, i) => {
-      const shape = NOTE_SHAPES[Math.floor(Math.random() * NOTE_SHAPES.length)];
       const groupName = e.profiles?.groups?.name;
       const color = GROUP_NOTE_COLOR[groupName] ?? "bg-cream";
-      const rotate = (Math.random() * 8 - 4).toFixed(1);
-      const hasTape = Math.random() < 0.4;
+      const rotate = (Math.random() * 6 - 3).toFixed(1);
       return `
-        <div class="note-card ${shape} ${color}" style="transform: rotate(${rotate}deg);" onclick="openNoteView(${i})">
-          ${hasTape ? '<div class="note-tape-corner"></div>' : ""}
+        <div class="note-card note-square ${color}" style="transform: rotate(${rotate}deg);" onclick="openNoteView(${i})">
           ${e.photo_url ? `<img class="note-photo-thumb" src="${e.photo_url}" />` : ""}
-          <div class="note-preview"></div>
-          <div class="note-author"></div>
+          ${e.content ? '<div class="note-preview"></div>' : ""}
         </div>
       `;
     }).join("");
 
     const cardEls = notesWrap.querySelectorAll(".note-card");
     missionEntriesCache.forEach((e, i) => {
-      const card = cardEls[i];
-      card.querySelector(".note-preview").textContent = e.content;
-      card.querySelector(".note-author").textContent = `- ${e.profiles?.name ?? "이름없음"}`;
+      if (e.content) cardEls[i].querySelector(".note-preview").textContent = e.content;
     });
   }
 
@@ -1423,9 +1426,10 @@
     const textarea = document.getElementById("new-mission-content");
     const content = textarea.value.trim();
     if (!content) return;
+    const missionType = document.querySelector('input[name="new-mission-type"]:checked').value;
 
     const { error } = await activeClient.from("missions").insert({
-      content, mission_date: dateStrFor(missionDateOffset), created_by: currentUser.id
+      content, mission_date: dateStrFor(missionDateOffset), created_by: currentUser.id, mission_type: missionType
     });
     if (!error) {
       textarea.value = "";
@@ -1436,7 +1440,12 @@
   function startEditMissionTitle() {
     if (!currentMission) return;
     const contentEl = document.getElementById("mission-title-content");
+    const isPhoto = currentMission.mission_type === "photo";
     contentEl.innerHTML = `<textarea id="mission-title-edit-textarea" style="width:100%; font-family:'Gaegu',cursive; font-size:17px; text-align:center; min-height:60px;"></textarea>
+      <div class="mission-type-toggle on-paper" style="margin-top:8px;">
+        <label><input type="radio" name="edit-mission-type" value="text" ${!isPhoto ? "checked" : ""} /> 텍스트형</label>
+        <label><input type="radio" name="edit-mission-type" value="photo" ${isPhoto ? "checked" : ""} /> 사진형</label>
+      </div>
       <div class="mission-title-admin-actions">
         <button class="mini-link-btn" onclick="saveMissionTitleEdit()">저장</button>
         <button class="mini-link-btn" onclick="loadMissions()">취소</button>
@@ -1447,8 +1456,9 @@
 
   async function saveMissionTitleEdit() {
     const content = document.getElementById("mission-title-edit-textarea").value.trim();
+    const missionType = document.querySelector('input[name="edit-mission-type"]:checked').value;
     if (!content || !currentMission) return;
-    const { error } = await activeClient.from("missions").update({ content }).eq("id", currentMission.id);
+    const { error } = await activeClient.from("missions").update({ content, mission_type: missionType }).eq("id", currentMission.id);
     if (!error) await loadMissions();
   }
 
@@ -1460,9 +1470,20 @@
   }
 
   // ---------------- 미션 작성/열람 모달 ----------------
+  function isPhotoMission() {
+    return currentMission?.mission_type === "photo";
+  }
+
   function mmToggleRegisterBtn() {
     const btn = document.getElementById("mm-register-btn");
-    btn.disabled = document.getElementById("mm-textarea").value.trim().length === 0;
+    if (isPhotoMission()) {
+      const fileInput = document.getElementById("mm-file-input");
+      const hasNewFile = fileInput.files && fileInput.files.length > 0;
+      const hasExistingPhoto = missionEditEntryId && document.getElementById("mm-photo-preview").style.display === "block";
+      btn.disabled = !(hasNewFile || hasExistingPhoto);
+    } else {
+      btn.disabled = document.getElementById("mm-textarea").value.trim().length === 0;
+    }
   }
 
   function mmFileSelected() {
@@ -1483,6 +1504,7 @@
       filenameEl.textContent = "";
       previewEl.style.display = "none";
     }
+    mmToggleRegisterBtn();
   }
 
   let missionEditEntryId = null; // null = 새 글 작성 모드, id 있으면 해당 글 열람/수정 모드
@@ -1498,13 +1520,15 @@
     }
 
     missionEditEntryId = null;
+    const photo = isPhotoMission();
 
     document.getElementById("mm-group").textContent = currentUser.groupName ?? "-";
     document.getElementById("mm-name").textContent = currentUser.name;
     document.getElementById("mm-address").textContent = `오늘의 미션: ${currentMission.content}`;
 
+    document.getElementById("mm-textarea").style.display = photo ? "none" : "block";
     document.getElementById("mm-textarea").value = "";
-    document.getElementById("mm-photo-attach").style.display = "block";
+    document.getElementById("mm-photo-attach").style.display = photo ? "block" : "none";
     document.getElementById("mm-file-input").value = "";
     document.getElementById("mm-photo-filename").textContent = "";
     document.getElementById("mm-photo-preview").style.display = "none";
@@ -1540,7 +1564,7 @@
     } else {
       viewImg.style.display = "none";
     }
-    document.getElementById("mm-view-text").textContent = entry.content;
+    document.getElementById("mm-view-text").textContent = entry.content ?? "";
 
     const isMine = entry.user_id === currentUser.id;
     document.getElementById("mm-register-btn").style.display = "none";
@@ -1554,16 +1578,18 @@
   function switchNoteToEdit() {
     const entry = missionEntriesCache.find(e => e.id === missionEditEntryId);
     if (!entry) return;
+    const photo = isPhotoMission();
 
     document.getElementById("mm-view-wrap").style.display = "none";
-    document.getElementById("mm-textarea").style.display = "block";
-    document.getElementById("mm-textarea").value = entry.content;
 
-    document.getElementById("mm-photo-attach").style.display = "block";
+    document.getElementById("mm-textarea").style.display = photo ? "none" : "block";
+    document.getElementById("mm-textarea").value = entry.content ?? "";
+
+    document.getElementById("mm-photo-attach").style.display = photo ? "block" : "none";
     document.getElementById("mm-file-input").value = "";
-    document.getElementById("mm-photo-filename").textContent = entry.photo_url ? "기존 사진 유지 중 (새로 고르면 교체됨)" : "";
+    document.getElementById("mm-photo-filename").textContent = (photo && entry.photo_url) ? "기존 사진 유지 중 (새로 고르면 교체됨)" : "";
     const previewEl = document.getElementById("mm-photo-preview");
-    if (entry.photo_url) { previewEl.src = entry.photo_url; previewEl.style.display = "block"; }
+    if (photo && entry.photo_url) { previewEl.src = entry.photo_url; previewEl.style.display = "block"; }
     else previewEl.style.display = "none";
 
     document.getElementById("mm-register-btn").style.display = "inline-block";
@@ -1582,29 +1608,36 @@
 
   async function handleMissionRegister() {
     if (!currentMission) return;
-    const content = document.getElementById("mm-textarea").value.trim();
-    if (!content) return;
-
+    const photo = isPhotoMission();
     const btn = document.getElementById("mm-register-btn");
-    let photoUrl; // undefined = 기존 값 유지(수정 시), null = 사진 없음(신규 시 기본값)
 
-    const fileInput = document.getElementById("mm-file-input");
-    const file = fileInput.files && fileInput.files[0];
+    let content = null;
+    let photoUrl; // undefined = 기존 값 유지(수정 시), null = 없음
 
-    if (file) {
-      btn.disabled = true; btn.textContent = "업로드 중...";
-      const filePath = `${currentMission.id}/${currentUser.id}-${Date.now()}-${file.name}`;
-      const { error: uploadError } = await activeClient.storage.from("mission-photos").upload(filePath, file);
-      btn.textContent = missionEditEntryId ? "저장" : "등록";
+    if (photo) {
+      const fileInput = document.getElementById("mm-file-input");
+      const file = fileInput.files && fileInput.files[0];
 
-      if (uploadError) { alert("사진 업로드 중 오류가 발생했어요: " + uploadError.message); btn.disabled = false; return; }
+      if (file) {
+        btn.disabled = true; btn.textContent = "업로드 중...";
+        const filePath = `${currentMission.id}/${currentUser.id}-${Date.now()}-${file.name}`;
+        const { error: uploadError } = await activeClient.storage.from("mission-photos").upload(filePath, file);
+        btn.textContent = missionEditEntryId ? "저장" : "등록";
 
-      const { data: urlData } = activeClient.storage.from("mission-photos").getPublicUrl(filePath);
-      photoUrl = urlData.publicUrl;
-    } else if (!missionEditEntryId) {
-      photoUrl = null; // 신규 작성인데 사진 안 골랐으면 사진 없이 등록
+        if (uploadError) { alert("사진 업로드 중 오류가 발생했어요: " + uploadError.message); btn.disabled = false; return; }
+
+        const { data: urlData } = activeClient.storage.from("mission-photos").getPublicUrl(filePath);
+        photoUrl = urlData.publicUrl;
+      } else if (!missionEditEntryId) {
+        alert("사진을 선택해주세요.");
+        return;
+      }
+      // 수정 모드에서 새 파일 선택 안 했으면 photoUrl은 undefined → 기존 값 그대로 둠
+    } else {
+      content = document.getElementById("mm-textarea").value.trim();
+      if (!content) return;
+      photoUrl = null;
     }
-    // 수정 모드에서 새 파일 선택 안 했으면 photoUrl은 undefined → 기존 값 그대로 둠
 
     if (missionEditEntryId) {
       const payload = { content };
@@ -1817,8 +1850,9 @@
     document.getElementById("seat-group-label").textContent = `${groupName}호 (${totalCount ?? 0}개)${lapSuffix}`;
     document.getElementById("seat-date-prev").textContent = formatMD(seatViewDate(currentSeatDateOffset - 1));
     document.getElementById("seat-date-next").textContent = formatMD(nextDay);
+    const officialTotal = officialGroupSize(groupName, memberList.length);
     document.getElementById("seat-remain-label").textContent =
-      `잔여 ${memberList.length - filledCount}석 / 전체 ${memberList.length}석`;
+      `잔여 ${officialTotal - filledCount}석 / 전체 ${officialTotal}석`;
 
     const isToday = currentSeatDateOffset === 0;
 
