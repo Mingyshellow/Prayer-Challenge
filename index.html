@@ -293,6 +293,7 @@
     flex-shrink: 0; border: 2px solid; border-radius: 999px; padding: 4px 12px;
     font-size: 12.5px; font-weight: 700; background: #fff; min-width: 56px; text-align: center;
   }
+  .lap-badge { font-size: 10.5px; margin-right: 3px; }
 
   /* 오늘의 말씀 */
   .verse-card {
@@ -838,7 +839,7 @@
         <div class="seat-remain-label" id="seat-remain-label">-</div>
 
         <div class="seat-progress-block">
-          <div class="seat-progress-line" id="seat-progress-line">기차 0/50칸 이동</div>
+          <div class="seat-progress-line" id="seat-progress-line">기차 0/30칸 이동</div>
           <div class="seat-progress-track"><div class="seat-progress-fill" id="seat-progress-fill" style="width:0%"></div></div>
           <div class="seat-progress-sub" id="seat-progress-sub"></div>
           <div class="seat-progress-mini-track"><div class="seat-progress-mini-fill" id="seat-progress-mini-fill" style="width:0%"></div></div>
@@ -1225,13 +1226,16 @@
   }
 
   // ---------------- 진행 칸수 계산 (공용) ----------------
-  const PRAYERS_PER_STEP = 20; // 기도 20개 = 1칸
+  const PRAYERS_PER_STEP = 10; // 기도 10개 = 1칸
+  const JOURNEY_TOTAL_STEPS = 30; // 한 여정당 총 30칸
 
   function computeProgress(total) {
-    const steps = Math.min(50, Math.floor(total / PRAYERS_PER_STEP));
+    const totalStepsEver = Math.floor(total / PRAYERS_PER_STEP);
+    const lapCount = Math.floor(totalStepsEver / JOURNEY_TOTAL_STEPS); // 완주 횟수
+    const steps = totalStepsEver % JOURNEY_TOTAL_STEPS; // 이번 여정에서의 진행 칸수 (완주하면 0으로 리셋)
     const inCurrentSegment = total % PRAYERS_PER_STEP;
     const remaining = PRAYERS_PER_STEP - inCurrentSegment;
-    return { steps, pct: (inCurrentSegment / PRAYERS_PER_STEP) * 100, remaining };
+    return { steps, lapCount, pct: (inCurrentSegment / PRAYERS_PER_STEP) * 100, remaining };
   }
 
   // ---------------- 행사 D-day ----------------
@@ -1278,9 +1282,11 @@
         <div class="track-row" onclick="switchTab('journey'); openTrainDetail('${g.id}')">
           <span class="track-engine">🚂</span>
           <div class="track-rail">
-            <div class="track-rail-fill" style="width:${(p.steps / 50) * 100}%; background:${color};"></div>
+            <div class="track-rail-fill" style="width:${(p.steps / JOURNEY_TOTAL_STEPS) * 100}%; background:${color};"></div>
           </div>
-          <div class="track-name-tag" style="border-color:${color}; color:${color};">${g.name}</div>
+          <div class="track-name-tag" style="border-color:${color}; color:${color};">
+            ${p.lapCount > 0 ? `<span class="lap-badge">🏆${p.lapCount}</span>` : ""}${g.name}
+          </div>
         </div>
       `;
     }).join("");
@@ -1743,9 +1749,9 @@
                 ${isMine ? '<div class="train-mine-tag">내 목장</div>' : ""}
               </div>
             </div>
-            <div class="train-step-label">${p.steps}/50칸</div>
+            <div class="train-step-label">${p.lapCount > 0 ? `🏆${p.lapCount} · ` : ""}${p.steps}/${JOURNEY_TOTAL_STEPS}칸</div>
           </div>
-          <div class="train-mini-bar-track"><div class="train-mini-bar-fill" style="width:${(p.steps / 50) * 100}%"></div></div>
+          <div class="train-mini-bar-track"><div class="train-mini-bar-fill" style="width:${(p.steps / JOURNEY_TOTAL_STEPS) * 100}%"></div></div>
         </div>
       `;
     }).join("");
@@ -1812,8 +1818,9 @@
     const { count: totalCount } = await activeClient
       .from("prayers").select("id", { count: "exact", head: true }).eq("group_id", groupId);
     const p = computeProgress(totalCount ?? 0);
-    document.getElementById("seat-progress-line").textContent = `기차 ${p.steps}/50칸 이동 (누적 기도 ${totalCount ?? 0}개)`;
-    document.getElementById("seat-progress-fill").style.width = `${(p.steps / 50) * 100}%`;
+    const lapPrefix = p.lapCount > 0 ? `🏆 완주 ${p.lapCount}회 · ` : "";
+    document.getElementById("seat-progress-line").textContent = `${lapPrefix}기차 ${p.steps}/${JOURNEY_TOTAL_STEPS}칸 이동 (누적 기도 ${totalCount ?? 0}개)`;
+    document.getElementById("seat-progress-fill").style.width = `${(p.steps / JOURNEY_TOTAL_STEPS) * 100}%`;
 
     document.getElementById("seat-group-label").textContent = `${groupName}호 (${filledCount}석)`;
     document.getElementById("seat-date-prev").textContent = formatMD(seatViewDate(currentSeatDateOffset - 1));
