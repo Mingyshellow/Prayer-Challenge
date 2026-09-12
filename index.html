@@ -420,13 +420,12 @@
     background-image: repeating-linear-gradient(180deg, transparent 0 20px, rgba(0,0,0,0.07) 20px 21px);
   }
   .note-card.bg-cream { background-color: #fdf8ec; }
-  .note-card.bg-sky { background-color: #eaf3fb; }
-  .note-card.bg-peach { background-color: #fdf1e4; }
-  .note-card.bg-mint { background-color: #eafbf1; }
-  .note-card.bg-pink { background-color: #f3c9d0; }
-  .note-card.bg-lilac { background-color: #ebe3f7; }
-  .note-card.bg-lime { background-color: #e4f3c4; }
-  .note-card.bg-yellow { background-color: #fdefac; }
+  .note-card.bg-purple { background-color: #e5dcf3; }
+  .note-card.bg-red { background-color: #f7d9d5; }
+  .note-card.bg-blue { background-color: #d5e3f1; }
+  .note-card.bg-green { background-color: #d5eadb; }
+  .note-card.bg-yellow { background-color: #f7f0d4; }
+  .note-card.bg-orange { background-color: #f8e5d1; }
 
   /* ---------- 미니 브라우저 모달 (미션 작성/열람) ---------- */
   .browser-modal { background: #e6e6e6; max-width: 340px; }
@@ -1391,12 +1390,12 @@
     missionEntriesCache = entries ?? [];
 
     const GROUP_NOTE_COLOR = {
-      "헤브론": "bg-pink",
-      "딜라이트": "bg-lilac",
-      "하존": "bg-lime",
-      "호크마": "bg-yellow",
-      "에베드": "bg-sky",
-      "빛과소금": "bg-mint"
+      "딜라이트": "bg-purple",
+      "빛과소금": "bg-red",
+      "에베드": "bg-blue",
+      "하존": "bg-green",
+      "헤브론": "bg-yellow",
+      "호크마": "bg-orange"
     };
 
     notesWrap.innerHTML = missionEntriesCache.map((e, i) => {
