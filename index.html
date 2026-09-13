@@ -963,7 +963,7 @@
 
         <!-- 작성 전: 작성완료 버튼 -->
         <div id="mp-write-actions" style="display:none; text-align:center;">
-          <button class="ticket-complete-btn" onclick="handleTicketWrite()">작성완료</button>
+          <button class="ticket-complete-btn" id="ticket-complete-btn" onclick="handleTicketWrite()">작성완료</button>
         </div>
 
         <!-- 작성 후(내 것): 금액/바코드 + 수정/삭제 -->
@@ -1608,6 +1608,7 @@
     if (!currentMission) return;
     const photo = isPhotoMission();
     const btn = document.getElementById("mm-register-btn");
+    if (btn.disabled) return; // 이미 처리 중이면 연타 무시
 
     let content = null;
     let photoUrl; // undefined = 기존 값 유지(수정 시), null = 없음
@@ -1615,9 +1616,15 @@
     if (photo) {
       const fileInput = document.getElementById("mm-file-input");
       const file = fileInput.files && fileInput.files[0];
+      if (!file && !missionEditEntryId) {
+        alert("사진을 선택해주세요.");
+        return;
+      }
+
+      btn.disabled = true;
 
       if (file) {
-        btn.disabled = true; btn.textContent = "업로드 중...";
+        btn.textContent = "업로드 중...";
         const filePath = `${currentMission.id}/${currentUser.id}-${Date.now()}-${file.name}`;
         const { error: uploadError } = await activeClient.storage.from("mission-photos").upload(filePath, file);
         btn.textContent = missionEditEntryId ? "저장" : "등록";
@@ -1626,21 +1633,20 @@
 
         const { data: urlData } = activeClient.storage.from("mission-photos").getPublicUrl(filePath);
         photoUrl = urlData.publicUrl;
-      } else if (!missionEditEntryId) {
-        alert("사진을 선택해주세요.");
-        return;
       }
       // 수정 모드에서 새 파일 선택 안 했으면 photoUrl은 undefined → 기존 값 그대로 둠
     } else {
       content = document.getElementById("mm-textarea").value.trim();
       if (!content) return;
       photoUrl = null;
+      btn.disabled = true;
     }
 
     if (missionEditEntryId) {
       const payload = { content };
       if (photoUrl !== undefined) payload.photo_url = photoUrl;
       const { error } = await activeClient.from("mission_completions").update(payload).eq("id", missionEditEntryId);
+      btn.disabled = false;
       if (!error) { closeMissionModal(); await loadMissions(); }
       else alert("저장 중 오류가 발생했어요: " + error.message);
     } else {
@@ -1648,6 +1654,7 @@
         mission_id: currentMission.id, user_id: currentUser.id, content,
         photo_url: photoUrl ?? null
       });
+      btn.disabled = false;
       if (!error) { closeMissionModal(); await loadMissions(); }
       else alert("저장 중 오류가 발생했어요: " + error.message);
     }
@@ -1845,7 +1852,7 @@
     document.getElementById("seat-progress-fill").style.width = `${(p.steps / JOURNEY_TOTAL_STEPS) * 100}%`;
 
     const lapSuffix = p.lapCount > 0 ? ` 🏆${p.lapCount}` : "";
-    document.getElementById("seat-group-label").textContent = `${groupName}호 (${totalCount ?? 0}개)${lapSuffix}`;
+    document.getElementById("seat-group-label").textContent = `${groupName}호 (누적 기도 ${totalCount ?? 0}개)${lapSuffix}`;
     document.getElementById("seat-date-prev").textContent = formatMD(seatViewDate(currentSeatDateOffset - 1));
     document.getElementById("seat-date-next").textContent = formatMD(nextDay);
     const officialTotal = officialGroupSize(groupName, memberList.length);
@@ -1919,6 +1926,7 @@
     document.getElementById("mp-name").textContent = name;
     document.getElementById("mp-write-textarea").value = "";
     document.getElementById("mp-write-error").textContent = "";
+    document.getElementById("ticket-complete-btn").disabled = false;
 
     document.getElementById("mp-write-form").style.display = "block";
     document.getElementById("mp-content-view").style.display = "none";
@@ -1933,6 +1941,7 @@
     if (!ticketContext?.prayerId) return;
     document.getElementById("mp-write-textarea").value = document.getElementById("mp-content-text").textContent;
     document.getElementById("mp-write-error").textContent = "";
+    document.getElementById("ticket-complete-btn").disabled = false;
 
     document.getElementById("mp-content-view").style.display = "none";
     document.getElementById("mp-write-form").style.display = "block";
@@ -1970,10 +1979,15 @@
     const content = document.getElementById("mp-write-textarea").value.trim();
     if (!content) { errEl.textContent = "기도문을 입력해주세요."; return; }
 
+    const btn = document.getElementById("ticket-complete-btn");
+    if (btn.disabled) return; // 이미 처리 중이면 연타 무시
+    btn.disabled = true;
+
     if (ticketContext?.prayerId) {
       // 수정 모드
       const { data, error } = await activeClient.from("prayers")
         .update({ content }).eq("id", ticketContext.prayerId).select().single();
+      btn.disabled = false;
       if (error) { errEl.textContent = "저장 중 오류가 발생했어요."; return; }
       await renderSeatScreen();
       await loadTrainList();
@@ -1985,6 +1999,7 @@
       user_id: currentUser.id, group_id: currentSeatGroupId, content
     }).select().single();
 
+    btn.disabled = false;
     if (error) { errEl.textContent = "저장 중 오류가 발생했어요."; return; }
 
     await renderSeatScreen();
