@@ -287,9 +287,13 @@
   .podium-col { display: flex; flex-direction: column; align-items: center; width: 88px; }
   .podium-medal { font-size: 26px; margin-bottom: 4px; }
   .podium-name {
-    font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 8px;
+    font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 2px;
     line-height: 1.3; min-height: 32px; display: flex; align-items: center;
     word-break: keep-all;
+  }
+  .podium-count {
+    font-size: 11px; color: var(--text-muted); margin-bottom: 8px;
+    font-family: 'JetBrains Mono', monospace;
   }
   .podium-stand {
     width: 100%; border-radius: 8px 8px 0 0; display: flex; align-items: flex-start;
@@ -803,16 +807,19 @@
           <div class="podium-col">
             <div class="podium-medal">🥈</div>
             <div class="podium-name" id="podium-2-name">-</div>
+            <div class="podium-count" id="podium-2-count"></div>
             <div class="podium-stand p2">2</div>
           </div>
           <div class="podium-col">
             <div class="podium-medal">🥇</div>
             <div class="podium-name" id="podium-1-name">-</div>
+            <div class="podium-count" id="podium-1-count"></div>
             <div class="podium-stand p1">1</div>
           </div>
           <div class="podium-col">
             <div class="podium-medal">🥉</div>
             <div class="podium-name" id="podium-3-name">-</div>
+            <div class="podium-count" id="podium-3-count"></div>
             <div class="podium-stand p3">3</div>
           </div>
         </div>
@@ -1322,13 +1329,14 @@
 
     block.style.display = "block";
     const slots = [
-      { rank: 1, el: document.getElementById("podium-1-name") },
-      { rank: 2, el: document.getElementById("podium-2-name") },
-      { rank: 3, el: document.getElementById("podium-3-name") }
+      { nameEl: document.getElementById("podium-1-name"), countEl: document.getElementById("podium-1-count") },
+      { nameEl: document.getElementById("podium-2-name"), countEl: document.getElementById("podium-2-count") },
+      { nameEl: document.getElementById("podium-3-name"), countEl: document.getElementById("podium-3-count") }
     ];
     slots.forEach((slot, i) => {
       const row = data[i];
-      slot.el.textContent = row ? `${row["목장"]} - ${row["이름"]}` : "-";
+      slot.nameEl.textContent = row ? `${row["목장"]} - ${row["이름"]}` : "-";
+      slot.countEl.textContent = row ? `참여 ${row["총참여횟수"]}회` : "";
     });
   }
 
