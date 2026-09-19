@@ -278,6 +278,28 @@
   }
   .dday-banner-cheer { font-size: 12.5px; opacity: .85; }
 
+  /* TOP3 시상대 */
+  .podium-block { margin-bottom: 26px; }
+  .podium-row {
+    display: flex; align-items: flex-end; justify-content: center; gap: 10px;
+    padding: 8px 4px 0;
+  }
+  .podium-col { display: flex; flex-direction: column; align-items: center; width: 88px; }
+  .podium-medal { font-size: 26px; margin-bottom: 4px; }
+  .podium-name {
+    font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 8px;
+    line-height: 1.3; min-height: 32px; display: flex; align-items: center;
+    word-break: keep-all;
+  }
+  .podium-stand {
+    width: 100%; border-radius: 8px 8px 0 0; display: flex; align-items: flex-start;
+    justify-content: center; padding-top: 6px; font-family: 'JetBrains Mono', monospace;
+    font-weight: 800; font-size: 15px; color: #fff;
+  }
+  .podium-stand.p1 { height: 74px; background: linear-gradient(180deg, #f4c542, #d9a520); }
+  .podium-stand.p2 { height: 54px; background: linear-gradient(180deg, #c9ced6, #9aa1ac); }
+  .podium-stand.p3 { height: 40px; background: linear-gradient(180deg, #d99a5c, #b9763a); }
+
   /* 목장 열차 트랙 목록 */
   .train-track-block { display: flex; flex-direction: column; gap: 16px; }
   .track-row { display: flex; align-items: center; gap: 12px; cursor: pointer; }
@@ -774,6 +796,28 @@
         <span class="dday-banner-cheer">남았습니다. 화이팅!</span>
       </div>
 
+      <!-- 1.5 TOP3 시상대 -->
+      <div class="dash-block podium-block" id="podium-block" style="display:none;">
+        <div class="dash-title">🏆 최고 참여자 TOP 3</div>
+        <div class="podium-row">
+          <div class="podium-col">
+            <div class="podium-medal">🥈</div>
+            <div class="podium-name" id="podium-2-name">-</div>
+            <div class="podium-stand p2">2</div>
+          </div>
+          <div class="podium-col">
+            <div class="podium-medal">🥇</div>
+            <div class="podium-name" id="podium-1-name">-</div>
+            <div class="podium-stand p1">1</div>
+          </div>
+          <div class="podium-col">
+            <div class="podium-medal">🥉</div>
+            <div class="podium-name" id="podium-3-name">-</div>
+            <div class="podium-stand p3">3</div>
+          </div>
+        </div>
+      </div>
+
       <!-- 2. 목장 열차 목록 -->
       <div class="dash-block train-track-block" id="dashboard-train-tracks"></div>
 
@@ -1208,6 +1252,7 @@
     }
 
     renderDdayBanner();
+    await renderTop3Podium();
     await renderDashboardTrainTracks();
     await loadTrainList();
     await loadVerse();
@@ -1265,6 +1310,27 @@
     "호크마": 17
   };
   function officialGroupSize(name, fallback) { return GROUP_TOTAL_MEMBERS[name] ?? fallback; }
+
+  async function renderTop3Podium() {
+    const block = document.getElementById("podium-block");
+    const { data, error } = await activeClient.rpc("get_top3_ranking");
+
+    if (error || !data || data.length === 0) {
+      block.style.display = "none";
+      return;
+    }
+
+    block.style.display = "block";
+    const slots = [
+      { rank: 1, el: document.getElementById("podium-1-name") },
+      { rank: 2, el: document.getElementById("podium-2-name") },
+      { rank: 3, el: document.getElementById("podium-3-name") }
+    ];
+    slots.forEach((slot, i) => {
+      const row = data[i];
+      slot.el.textContent = row ? `${row["목장"]} - ${row["이름"]}` : "-";
+    });
+  }
 
   async function renderDashboardTrainTracks() {
     const wrap = document.getElementById("dashboard-train-tracks");
