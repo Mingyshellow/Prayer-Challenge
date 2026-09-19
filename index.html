@@ -1328,15 +1328,27 @@
     }
 
     block.style.display = "block";
+    const byRank = { 1: [], 2: [], 3: [] };
+    data.forEach(row => {
+      if (byRank[row["순위"]]) byRank[row["순위"]].push(row);
+    });
+
     const slots = [
-      { nameEl: document.getElementById("podium-1-name"), countEl: document.getElementById("podium-1-count") },
-      { nameEl: document.getElementById("podium-2-name"), countEl: document.getElementById("podium-2-count") },
-      { nameEl: document.getElementById("podium-3-name"), countEl: document.getElementById("podium-3-count") }
+      { rank: 1, nameEl: document.getElementById("podium-1-name"), countEl: document.getElementById("podium-1-count") },
+      { rank: 2, nameEl: document.getElementById("podium-2-name"), countEl: document.getElementById("podium-2-count") },
+      { rank: 3, nameEl: document.getElementById("podium-3-name"), countEl: document.getElementById("podium-3-count") }
     ];
-    slots.forEach((slot, i) => {
-      const row = data[i];
-      slot.nameEl.textContent = row ? `${row["목장"]} - ${row["이름"]}` : "-";
-      slot.countEl.textContent = row ? `참여 ${row["총참여횟수"]}회` : "";
+
+    slots.forEach(slot => {
+      const rows = byRank[slot.rank];
+      if (!rows || rows.length === 0) {
+        slot.nameEl.textContent = "-";
+        slot.countEl.textContent = "";
+        return;
+      }
+      const tiePrefix = rows.length > 1 ? "공동 " : "";
+      slot.nameEl.textContent = tiePrefix + rows.map(r => `${r["목장"]} - ${r["이름"]}`).join(" · ");
+      slot.countEl.textContent = `참여 ${rows[0]["총참여횟수"]}회`;
     });
   }
 
