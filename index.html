@@ -242,10 +242,12 @@
     padding: 18px 20px 14px; max-width: 480px; width: 100%; margin: 0 auto;
   }
   .app-header-title { font-family: 'Gowun Dodum', sans-serif;  font-size: 18px; }
+  .app-header-actions { display: flex; gap: 8px; }
   .icon-btn {
     background: none; border: 1px solid var(--rail); color: var(--text-muted);
     border-radius: 10px; width: 34px; height: 34px; font-size: 15px; cursor: pointer;
   }
+  .icon-btn.notif-on { border-color: var(--amber-dim); color: var(--amber); }
   .icon-btn:hover { color: var(--text); border-color: var(--text-faint); }
 
   .app-content {
@@ -279,6 +281,30 @@
   .dday-banner-cheer { font-size: 12.5px; opacity: .85; }
 
   /* 전체 누적 카운터 */
+  /* 개인 스트릭 */
+  .streak-card {
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(135deg, #fff6ea, #ffe6cf);
+    border: 1px solid #ffd4a8; border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 18px;
+  }
+  .streak-fire {
+    display: inline-block; font-size: 28px; line-height: 1;
+    filter: grayscale(1) opacity(0.45);
+    transition: font-size .4s ease, filter .4s ease;
+    flex-shrink: 0;
+  }
+  .streak-fire.lit {
+    filter: drop-shadow(0 0 6px rgba(255, 140, 40, 0.55));
+    animation: streak-pulse 1.7s ease-in-out infinite;
+  }
+  @keyframes streak-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  .streak-text { font-size: 13px; color: #6b4a2a; line-height: 1.4; }
+  .streak-num { font-weight: 800; font-family: 'JetBrains Mono', monospace; color: #d9622a; font-size: 15px; }
+
   .total-counter-card {
     text-align: center; font-size: 13px; color: var(--text-muted);
     background: var(--surface-2); border: 1px solid var(--rail); border-radius: 10px;
@@ -804,7 +830,10 @@
   <div class="app-frame">
   <header class="app-header">
     <div class="app-header-title" id="welcome-name">-</div>
-    <button class="icon-btn" onclick="handleLogout()" title="로그아웃">⎋</button>
+    <div class="app-header-actions">
+      <button class="icon-btn" id="notif-btn" onclick="handleEnableNotifications()" title="알림 받기">🔕</button>
+      <button class="icon-btn" onclick="handleLogout()" title="로그아웃">⎋</button>
+    </div>
   </header>
 
   <main class="app-content">
@@ -817,6 +846,12 @@
         <span class="dday-banner-label" id="dday-banner-label">청춘 친구초청잔치 역까지</span>
         <span class="dday-banner-value" id="dday-banner-value">D--</span>
         <span class="dday-banner-cheer">남았습니다. 화이팅!</span>
+      </div>
+
+      <!-- 1.1 개인 스트릭 -->
+      <div class="streak-card" id="streak-card">
+        <span class="streak-fire" id="streak-fire">🔥</span>
+        <div class="streak-text" id="streak-text">기도문 작성하고 스트릭을 시작해보세요!</div>
       </div>
 
       <!-- 1.2 전체 누적 기도 카운터 -->
@@ -1284,6 +1319,7 @@
     }
 
     renderDdayBanner();
+    await loadStreak();
     await loadTotalPrayerCount();
     await renderTop3Podium();
     await renderDashboardTrainTracks();
@@ -1291,6 +1327,8 @@
     await loadVerse();
     await loadMissions();
     await loadNotices();
+    await registerServiceWorker();
+    await checkNotificationStatus();
   }
 
   // ---------------- 진행 칸수 계산 (공용) ----------------
@@ -1353,6 +1391,57 @@
     if (hr < 24) return `${hr}시간 전`;
     const day = Math.floor(hr / 24);
     return `${day}일 전`;
+  }
+
+  // ---------------- 개인 연속 참여 스트릭 ----------------
+  function localDateKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
+  function computeStreak(dateSet) {
+    const today = new Date();
+    const todayKey = localDateKey(today);
+    const hasToday = dateSet.has(todayKey);
+
+    const cursor = new Date(today);
+    if (!hasToday) cursor.setDate(cursor.getDate() - 1); // 오늘 아직 안 썼으면 어제부터 거슬러 확인
+
+    let streak = 0;
+    while (dateSet.has(localDateKey(cursor))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return { streak, hasToday };
+  }
+
+  function renderStreakCard(streak, hasToday) {
+    const fireEl = document.getElementById("streak-fire");
+    const textEl = document.getElementById("streak-text");
+
+    if (streak === 0) {
+      fireEl.classList.remove("lit");
+      fireEl.style.fontSize = "28px";
+      textEl.innerHTML = "기도문 작성하고 스트릭을 시작해보세요!";
+      return;
+    }
+
+    fireEl.classList.add("lit");
+    const size = Math.min(28 + Math.min(streak, 20) * 2.4, 76);
+    fireEl.style.fontSize = `${size}px`;
+
+    const suffix = hasToday ? "" : " (오늘 기도문 쓰면 이어져요!)";
+    textEl.innerHTML = `<span class="streak-num">${streak}일 연속</span> 기도 중이에요${suffix}`;
+  }
+
+  async function loadStreak() {
+    const { data } = await activeClient
+      .from("prayers")
+      .select("created_at")
+      .eq("user_id", currentUser.id);
+
+    const dateSet = new Set((data ?? []).map(p => localDateKey(new Date(p.created_at))));
+    const { streak, hasToday } = computeStreak(dateSet);
+    renderStreakCard(streak, hasToday);
   }
 
   async function loadTotalPrayerCount() {
@@ -2172,6 +2261,7 @@
     await renderSeatScreen();
     await renderDashboardTrainTracks();
     await loadTotalPrayerCount();
+    await loadStreak();
     await loadRecentPrayers();
     openTicketView(currentUser.name, data, true);
   }
@@ -2187,6 +2277,7 @@
     await renderSeatScreen();
     await renderDashboardTrainTracks();
     await loadTotalPrayerCount();
+    await loadStreak();
     await loadRecentPrayers();
   }
 
@@ -2196,6 +2287,74 @@
   document.getElementById("member-prayers-overlay").addEventListener("click", (e) => {
     if (e.target.id === "member-prayers-overlay") closeMemberPrayers();
   });
+
+  // ---------------- 웹 푸시 알림 ----------------
+  const VAPID_PUBLIC_KEY = "BNVGw1NF_eBfgwIWK9F3nJXlZB_c65Pdvdwpg_p4TzVYDEZU0hLzSz8ipVFjk2YO7oXak-CMsM7bAnzifK-YdTQ";
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+    const rawData = atob(base64);
+    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+  }
+
+  async function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return null;
+    try { return await navigator.serviceWorker.register("sw.js"); }
+    catch (e) { return null; }
+  }
+
+  async function checkNotificationStatus() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return;
+    const sub = await reg.pushManager.getSubscription();
+    const btn = document.getElementById("notif-btn");
+    if (sub) { btn.textContent = "🔔"; btn.classList.add("notif-on"); }
+  }
+
+  async function handleEnableNotifications() {
+    if (!("Notification" in window) || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+      alert("이 브라우저/기기는 알림 기능을 지원하지 않아요. (아이폰은 사파리에서 '홈 화면에 추가'로 설치한 뒤에만 가능해요)");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      alert("알림 권한이 거부됐어요. 브라우저/기기 설정에서 알림 권한을 다시 허용해주세요.");
+      return;
+    }
+
+    const reg = await registerServiceWorker();
+    if (!reg) { alert("알림 등록에 실패했어요."); return; }
+
+    try {
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+      const subJson = sub.toJSON();
+
+      const { error } = await activeClient.from("push_subscriptions").upsert({
+        user_id: currentUser.id,
+        endpoint: subJson.endpoint,
+        p256dh: subJson.keys.p256dh,
+        auth: subJson.keys.auth
+      }, { onConflict: "endpoint" });
+
+      if (error) { alert("구독 저장 중 오류가 발생했어요: " + error.message); return; }
+
+      const btn = document.getElementById("notif-btn");
+      btn.textContent = "🔔";
+      btn.classList.add("notif-on");
+      alert("알림이 켜졌어요! 같은 목장에 새 기도문이 올라오면 알려드릴게요.");
+    } catch (e) {
+      alert("알림 등록 중 오류가 발생했어요: " + e.message);
+    }
+  }
 
   function handleLogout() {
     activeClient.auth.signOut().then(() => location.reload());
