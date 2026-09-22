@@ -580,42 +580,29 @@
   .edit-actions { display: flex; gap: 8px; margin-top: 8px; }
   .edit-actions .mini-link-btn { font-size: 12.5px; }
 
-  /* ---------- 기차 여행: 목장 목록 ---------- */
-  .journey-intro { color: var(--text-muted); font-size: 13px; margin: 4px 0 16px; }
-
-  .train-card {
-    background: linear-gradient(180deg, var(--surface), var(--bg-deep));
-    border: 1px solid var(--rail); border-radius: 14px;
-    padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
-    transition: border-color .2s ease;
+  /* ---------- 좌석선택 (탭 콘텐츠에 통합된 KTX 스타일) ---------- */
+  .seat-screen-embedded {
+    margin: 0 -20px; background: #f2f5f8;
   }
-  .train-card:hover { border-color: var(--amber-dim); }
-  .train-card.mine { border-color: var(--amber-dim); }
-  .train-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .train-name-wrap { display: flex; align-items: center; gap: 10px; }
-  .train-icon { font-size: 20px; }
-  .train-name { font-family: 'Gowun Dodum', sans-serif;  font-size: 15px; }
-  .train-mine-tag { font-size: 10px; color: var(--amber); font-family: 'JetBrains Mono', monospace; }
-  .train-step-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--amber); }
-  .train-mini-bar-track { height: 5px; border-radius: 999px; background: var(--rail); margin-top: 10px; overflow: hidden; }
-  .train-mini-bar-fill { height: 100%; min-width: 5%; background: var(--amber); border-radius: 999px; }
-
-  /* ---------- 좌석선택 전체화면 (KTX 스타일) ---------- */
-  .seat-screen {
-    display: none; position: fixed; inset: 0; z-index: 25;
-    background: #f2f5f8; overflow-y: auto;
-  }
-  .seat-screen.active { display: block; }
   .seat-screen-topbar {
     background: #0d3b66; color: #fff; padding: 16px 18px; display: flex; align-items: center; gap: 14px;
-    font-size: 16px; font-weight: 700; position: sticky; top: 0; z-index: 2;
+    font-size: 16px; font-weight: 700;
   }
-  .seat-back-btn { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
   .seat-screen-dropdown-row {
     background: #fff; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center;
     font-size: 15px; font-weight: 700; color: #223; border-bottom: 8px solid #eef1f4;
+    cursor: pointer; position: relative;
   }
   .seat-dropdown-chevron { color: #8a97a8; }
+  .group-switcher-menu {
+    background: #fff; border-bottom: 8px solid #eef1f4; overflow: hidden;
+  }
+  .group-switcher-item {
+    padding: 13px 18px; font-size: 14px; font-weight: 600; color: #223;
+    border-top: 1px solid #eef1f4; cursor: pointer;
+  }
+  .group-switcher-item:hover { background: #f5f8fb; }
+  .group-switcher-item.current { color: #0d3b66; background: #eaf3fb; }
   .seat-date-card { background: #fff; padding: 16px 18px 14px; text-align: center; }
   .seat-date-nav { display: flex; align-items: center; justify-content: space-between; }
   .seat-date-pill {
@@ -895,49 +882,43 @@
     <!-- 기차 여행 탭 -->
     <section class="tab-panel" id="tab-journey">
 
-      <!-- 목장(기차) 목록 -->
-      <div id="journey-list-view">
-        <p class="journey-intro">6개의 목장이 각자의 기차를 타고 여정을 지나고 있어요.</p>
-        <div id="train-list"></div>
+      <!-- 좌석선택 UI (탭 자체 콘텐츠로 통합, 목장은 드롭다운으로 전환) -->
+      <div class="seat-screen-embedded" id="seat-screen">
+        <div class="seat-screen-topbar">
+          <span id="seat-screen-title">좌석선택</span>
+        </div>
+
+        <div class="seat-screen-dropdown-row" onclick="toggleGroupSwitcher()">
+          <span id="seat-group-label">-</span>
+          <span class="seat-dropdown-chevron">▾</span>
+        </div>
+        <div class="group-switcher-menu" id="group-switcher-menu" style="display:none;"></div>
+
+        <div class="seat-date-card">
+          <div class="seat-date-nav">
+            <button class="seat-date-pill" onclick="seatDateNav(-1)">‹ <span id="seat-date-prev">-</span></button>
+            <div class="seat-train-label">YTX 117 (특실)</div>
+            <button class="seat-date-pill" onclick="seatDateNav(1)"><span id="seat-date-next">-</span> ›</button>
+          </div>
+          <div class="seat-remain-label" id="seat-remain-label">-</div>
+
+          <div class="seat-progress-block">
+            <div class="seat-progress-track"><div class="seat-progress-fill" id="seat-progress-fill" style="width:0%"></div></div>
+          </div>
+
+          <div class="seat-legend">
+            <span><i class="legend-dot grey"></i>작성불가</span>
+            <span><i class="legend-dot blue"></i>작성완료</span>
+            <span><i class="legend-dot outline"></i>작성가능</span>
+          </div>
+        </div>
+
+        <div class="seat-cabin">
+          <div class="seat-grid-v2" id="seat-grid-v2"></div>
+        </div>
       </div>
 
     </section>
-
-    <!-- 좌석선택 전체화면 (KTX 스타일 2뎁스) -->
-    <div class="seat-screen" id="seat-screen">
-      <div class="seat-screen-topbar">
-        <button class="seat-back-btn" onclick="showTrainList()">‹</button>
-        <span id="seat-screen-title">좌석선택</span>
-      </div>
-
-      <div class="seat-screen-dropdown-row">
-        <span id="seat-group-label">-</span>
-        <span class="seat-dropdown-chevron">▾</span>
-      </div>
-
-      <div class="seat-date-card">
-        <div class="seat-date-nav">
-          <button class="seat-date-pill" onclick="seatDateNav(-1)">‹ <span id="seat-date-prev">-</span></button>
-          <div class="seat-train-label">YTX 117 (특실)</div>
-          <button class="seat-date-pill" onclick="seatDateNav(1)"><span id="seat-date-next">-</span> ›</button>
-        </div>
-        <div class="seat-remain-label" id="seat-remain-label">-</div>
-
-        <div class="seat-progress-block">
-          <div class="seat-progress-track"><div class="seat-progress-fill" id="seat-progress-fill" style="width:0%"></div></div>
-        </div>
-
-        <div class="seat-legend">
-          <span><i class="legend-dot grey"></i>작성불가</span>
-          <span><i class="legend-dot blue"></i>작성완료</span>
-          <span><i class="legend-dot outline"></i>작성가능</span>
-        </div>
-      </div>
-
-      <div class="seat-cabin">
-        <div class="seat-grid-v2" id="seat-grid-v2"></div>
-      </div>
-    </div>
 
     <!-- 오늘의 미션 탭 -->
     <section class="tab-panel" id="tab-mission">
@@ -1307,7 +1288,6 @@
     await renderTop3Podium();
     await renderDashboardTrainTracks();
     await loadRecentPrayers();
-    await loadTrainList();
     await loadVerse();
     await loadMissions();
     await loadNotices();
@@ -1937,44 +1917,43 @@
   }
 
   // ---------------- 기차 여행: 목장 6개 목록 ----------------
-  async function loadTrainList() {
-    const wrap = document.getElementById("train-list");
-    const { data: groups, error } = await activeClient.from("groups").select("id, name").order("name");
-    if (error || !groups) { wrap.innerHTML = `<div class="placeholder-note">목장 목록을 불러오지 못했어요</div>`; return; }
+  let cachedGroups = null; // 목장 목록 캐시 (드롭다운 전환용)
 
-    const counts = await Promise.all(groups.map(g =>
-      activeClient.from("prayers").select("id", { count: "exact", head: true }).eq("group_id", g.id)
-    ));
-
-    wrap.innerHTML = groups.map((g, i) => {
-      const total = counts[i].count ?? 0;
-      const p = computeProgress(total);
-      const isMine = g.id === currentUser.groupId;
-      return `
-        <div class="train-card ${isMine ? "mine" : ""}" onclick="openTrainDetail('${g.id}')">
-          <div class="train-row">
-            <div class="train-name-wrap">
-              <span class="train-icon">🚂</span>
-              <div>
-                <div class="train-name">${g.name}</div>
-                ${isMine ? '<div class="train-mine-tag">내 목장</div>' : ""}
-              </div>
-            </div>
-            <div class="train-step-label">${p.lapCount > 0 ? `🏆${p.lapCount} · ` : ""}${p.steps}/${JOURNEY_TOTAL_STEPS}칸</div>
-          </div>
-          <div class="train-mini-bar-track"><div class="train-mini-bar-fill" style="width:${(p.steps / JOURNEY_TOTAL_STEPS) * 100}%"></div></div>
-        </div>
-      `;
-    }).join("");
+  async function getGroupsCached() {
+    if (!cachedGroups) {
+      const { data } = await activeClient.from("groups").select("id, name").order("name");
+      cachedGroups = data ?? [];
+    }
+    return cachedGroups;
   }
 
-  function showTrainList() {
-    document.getElementById("seat-screen").classList.remove("active");
-    document.getElementById("main-tab-bar").style.display = "flex";
-    loadTrainList();
+  async function toggleGroupSwitcher() {
+    const menu = document.getElementById("group-switcher-menu");
+    if (menu.style.display === "block") { menu.style.display = "none"; return; }
+
+    const groups = await getGroupsCached();
+    menu.innerHTML = groups.map(g => `
+      <div class="group-switcher-item ${g.id === currentSeatGroupId ? "current" : ""}" onclick="event.stopPropagation(); selectGroupFromSwitcher('${g.id}')">
+        ${g.name}${g.id === currentUser.groupId ? " (내 목장)" : ""}
+      </div>
+    `).join("");
+    menu.style.display = "block";
   }
 
-  // ---------------- 기차 여행: 좌석선택 (KTX 스타일) ----------------
+  function selectGroupFromSwitcher(groupId) {
+    document.getElementById("group-switcher-menu").style.display = "none";
+    openTrainDetail(groupId);
+  }
+
+  document.addEventListener("click", (e) => {
+    const menu = document.getElementById("group-switcher-menu");
+    const dropdownRow = document.querySelector(".seat-screen-dropdown-row");
+    if (!menu || menu.style.display !== "block") return;
+    if (menu.contains(e.target) || (dropdownRow && dropdownRow.contains(e.target))) return;
+    menu.style.display = "none";
+  });
+
+  // ---------------- 기차 여행: 좌석선택 (KTX 스타일, 탭 콘텐츠로 통합) ----------------
   let currentSeatGroupId = null;
   let currentSeatDateOffset = 0; // 0 = 오늘
 
@@ -1989,9 +1968,17 @@
   async function openTrainDetail(groupId) {
     currentSeatGroupId = groupId;
     currentSeatDateOffset = 0;
-    document.getElementById("main-tab-bar").style.display = "none";
-    document.getElementById("seat-screen").classList.add("active");
     await renderSeatScreen();
+  }
+
+  async function renderJourneyTab() {
+    if (currentUser.groupId) {
+      await openTrainDetail(currentUser.groupId);
+    } else {
+      // 무소속: 목장 목록 중 첫 번째를 기본으로 보여주고, 드롭다운으로 바로 전환 가능
+      const groups = await getGroupsCached();
+      if (groups.length > 0) await openTrainDetail(groups[0].id);
+    }
   }
 
   function seatDateNav(delta) {
@@ -2170,7 +2157,6 @@
       btn.disabled = false;
       if (error) { errEl.textContent = "저장 중 오류가 발생했어요."; return; }
       await renderSeatScreen();
-      await loadTrainList();
       await loadRecentPrayers();
       openTicketView(currentUser.name, data, true);
       return;
@@ -2185,7 +2171,6 @@
 
     await renderSeatScreen();
     await renderDashboardTrainTracks();
-    await loadTrainList();
     await loadTotalPrayerCount();
     await loadRecentPrayers();
     openTicketView(currentUser.name, data, true);
@@ -2201,7 +2186,6 @@
     closeMemberPrayers();
     await renderSeatScreen();
     await renderDashboardTrainTracks();
-    await loadTrainList();
     await loadTotalPrayerCount();
     await loadRecentPrayers();
   }
@@ -2228,13 +2212,7 @@
   function switchTab(tab) {
     activateTabPanel(tab);
     if (tab === "mission") loadMissions();
-    if (tab === "journey") {
-      if (currentUser.groupId) {
-        openTrainDetail(currentUser.groupId); // 목장 있는 유저는 바로 내 목장 KTX 화면으로
-      } else {
-        loadTrainList(); // 무소속은 기존처럼 목장 목록부터 보여줌
-      }
-    }
+    if (tab === "journey") renderJourneyTab();
   }
 
   // ---------------- 초기화: 이미 로그인돼있으면(둘 중 어느 저장소든) 바로 진입 ----------------
