@@ -318,22 +318,28 @@
 
   /* 최근 기도문 피드 */
   .recent-prayers-list {
-    display: flex; flex-direction: column; gap: 8px;
-    max-height: 280px; overflow-y: auto; padding-right: 2px;
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 300px; overflow-y: auto; padding: 2px 2px 2px 0;
   }
   .recent-prayer-item {
-    background: var(--surface); border: 1px solid var(--rail); border-radius: 10px;
-    padding: 10px 12px;
+    display: flex; gap: 12px;
+    background: var(--surface); border-radius: 12px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(44, 62, 87, 0.06);
   }
+  .recent-prayer-bar {
+    width: 3px; border-radius: 999px; flex-shrink: 0; align-self: stretch;
+  }
+  .recent-prayer-body { flex: 1; min-width: 0; }
   .recent-prayer-head {
     display: flex; justify-content: space-between; align-items: baseline;
-    margin-bottom: 4px;
+    margin-bottom: 5px; gap: 8px;
   }
-  .recent-prayer-author { font-size: 12px; font-weight: 700; color: var(--text); }
-  .recent-prayer-time { font-size: 10.5px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; }
+  .recent-prayer-author { font-size: 12.5px; font-weight: 700; color: var(--text); }
+  .recent-prayer-time { font-size: 10.5px; color: var(--text-faint); flex-shrink: 0; }
   .recent-prayer-content {
-    font-size: 13px; line-height: 1.55; color: var(--text);
-    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    font-size: 13px; line-height: 1.6; color: var(--text-muted);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
   }
 
   /* TOP3 시상대 */
@@ -361,23 +367,6 @@
   .podium-stand.p1 { height: 74px; background: linear-gradient(180deg, #f4c542, #d9a520); }
   .podium-stand.p2 { height: 54px; background: linear-gradient(180deg, #c9ced6, #9aa1ac); }
   .podium-stand.p3 { height: 40px; background: linear-gradient(180deg, #d99a5c, #b9763a); }
-
-  /* 목장 열차 트랙 목록 */
-  .train-track-block { display: flex; flex-direction: column; gap: 16px; }
-  .track-row { display: flex; align-items: center; gap: 12px; cursor: pointer; }
-  .track-engine { font-size: 26px; flex-shrink: 0; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.15)); }
-  .track-rail {
-    flex: 1; height: 10px; border-radius: 4px; position: relative; overflow: hidden;
-    background: repeating-linear-gradient(90deg, #caa876 0 8px, transparent 8px 16px);
-  }
-  .track-rail-fill {
-    position: absolute; top: 0; left: 0; bottom: 0; min-width: 5%; border-radius: 4px;
-  }
-  .track-name-tag {
-    flex-shrink: 0; border: 2px solid; border-radius: 999px; padding: 4px 12px;
-    font-size: 12.5px; font-weight: 700; background: #fff; min-width: 56px; text-align: center;
-  }
-  .lap-badge { font-size: 10.5px; margin-right: 3px; }
 
   /* 오늘의 말씀 */
   .verse-card {
@@ -606,14 +595,36 @@
   .edit-actions { display: flex; gap: 8px; margin-top: 8px; }
   .edit-actions .mini-link-btn { font-size: 12.5px; }
 
-  /* ---------- 좌석선택 (탭 콘텐츠에 통합된 KTX 스타일) ---------- */
-  .seat-screen-embedded {
-    margin: 0 -20px; background: #f2f5f8;
+  /* ---------- 기차 여행: 목장 목록 (1뎁스) ---------- */
+  .journey-intro { color: var(--text-muted); font-size: 13px; margin: 4px 0 16px; }
+  .train-card {
+    background: linear-gradient(180deg, var(--surface), var(--bg-deep));
+    border: 1px solid var(--rail); border-radius: 14px;
+    padding: 14px 16px; margin-bottom: 10px; cursor: pointer;
+    transition: border-color .2s ease;
   }
+  .train-card:hover { border-color: var(--amber-dim); }
+  .train-card.mine { border-color: var(--amber-dim); }
+  .train-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .train-name-wrap { display: flex; align-items: center; gap: 10px; }
+  .train-icon { font-size: 20px; }
+  .train-name { font-family: 'Gowun Dodum', sans-serif;  font-size: 15px; }
+  .train-mine-tag { font-size: 10px; color: var(--amber); font-family: 'JetBrains Mono', monospace; }
+  .train-step-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--amber); }
+  .train-mini-bar-track { height: 5px; border-radius: 999px; background: var(--rail); margin-top: 10px; overflow: hidden; }
+  .train-mini-bar-fill { height: 100%; min-width: 5%; background: var(--amber); border-radius: 999px; }
+
+  /* ---------- 좌석선택 전체화면 (KTX 스타일, 2뎁스) ---------- */
+  .seat-screen {
+    display: none; position: fixed; inset: 0; z-index: 25;
+    background: #f2f5f8; overflow-y: auto;
+  }
+  .seat-screen.active { display: block; }
   .seat-screen-topbar {
     background: #0d3b66; color: #fff; padding: 16px 18px; display: flex; align-items: center; gap: 14px;
-    font-size: 16px; font-weight: 700;
+    font-size: 16px; font-weight: 700; position: sticky; top: 0; z-index: 2;
   }
+  .seat-back-btn { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
   .seat-screen-dropdown-row {
     background: #fff; padding: 16px 18px; display: flex; justify-content: space-between; align-items: center;
     font-size: 15px; font-weight: 700; color: #223; border-bottom: 8px solid #eef1f4;
@@ -884,12 +895,9 @@
         </div>
       </div>
 
-      <!-- 2. 목장 열차 목록 -->
-      <div class="dash-block train-track-block" id="dashboard-train-tracks"></div>
-
       <!-- 2.5 최근 기도문 피드 -->
       <div class="dash-block">
-        <h3 class="dash-title">💬 최근 올라온 기도문</h3>
+        <h3 class="dash-title">최근 기도문</h3>
         <div class="recent-prayers-list" id="recent-prayers-list"></div>
       </div>
 
@@ -916,43 +924,50 @@
     <!-- 기차 여행 탭 -->
     <section class="tab-panel" id="tab-journey">
 
-      <!-- 좌석선택 UI (탭 자체 콘텐츠로 통합, 목장은 드롭다운으로 전환) -->
-      <div class="seat-screen-embedded" id="seat-screen">
-        <div class="seat-screen-topbar">
-          <span id="seat-screen-title">좌석선택</span>
-        </div>
-
-        <div class="seat-screen-dropdown-row" onclick="toggleGroupSwitcher()">
-          <span id="seat-group-label">-</span>
-          <span class="seat-dropdown-chevron">▾</span>
-        </div>
-        <div class="group-switcher-menu" id="group-switcher-menu" style="display:none;"></div>
-
-        <div class="seat-date-card">
-          <div class="seat-date-nav">
-            <button class="seat-date-pill" onclick="seatDateNav(-1)">‹ <span id="seat-date-prev">-</span></button>
-            <div class="seat-train-label">YTX 117 (특실)</div>
-            <button class="seat-date-pill" onclick="seatDateNav(1)"><span id="seat-date-next">-</span> ›</button>
-          </div>
-          <div class="seat-remain-label" id="seat-remain-label">-</div>
-
-          <div class="seat-progress-block">
-            <div class="seat-progress-track"><div class="seat-progress-fill" id="seat-progress-fill" style="width:0%"></div></div>
-          </div>
-
-          <div class="seat-legend">
-            <span><i class="legend-dot grey"></i>작성불가</span>
-            <span><i class="legend-dot blue"></i>작성완료</span>
-            <span><i class="legend-dot outline"></i>작성가능</span>
-          </div>
-        </div>
-
-        <div class="seat-cabin">
-          <div class="seat-grid-v2" id="seat-grid-v2"></div>
-        </div>
+      <!-- 목장(기차) 목록 -->
+      <div id="journey-list-view">
+        <p class="journey-intro">6개의 목장이 각자의 기차를 타고 여정을 지나고 있어요.</p>
+        <div id="train-list"></div>
       </div>
 
     </section>
+
+    <!-- 좌석선택 전체화면 (KTX 스타일 2뎁스, 상단 드롭다운으로 다른 목장 바로 전환 가능) -->
+    <div class="seat-screen" id="seat-screen">
+      <div class="seat-screen-topbar">
+        <button class="seat-back-btn" onclick="showTrainList()">‹</button>
+        <span id="seat-screen-title">좌석선택</span>
+      </div>
+
+      <div class="seat-screen-dropdown-row" onclick="toggleGroupSwitcher()">
+        <span id="seat-group-label">-</span>
+        <span class="seat-dropdown-chevron">▾</span>
+      </div>
+      <div class="group-switcher-menu" id="group-switcher-menu" style="display:none;"></div>
+
+      <div class="seat-date-card">
+        <div class="seat-date-nav">
+          <button class="seat-date-pill" onclick="seatDateNav(-1)">‹ <span id="seat-date-prev">-</span></button>
+          <div class="seat-train-label">YTX 117 (특실)</div>
+          <button class="seat-date-pill" onclick="seatDateNav(1)"><span id="seat-date-next">-</span> ›</button>
+        </div>
+        <div class="seat-remain-label" id="seat-remain-label">-</div>
+
+        <div class="seat-progress-block">
+          <div class="seat-progress-track"><div class="seat-progress-fill" id="seat-progress-fill" style="width:0%"></div></div>
+        </div>
+
+        <div class="seat-legend">
+          <span><i class="legend-dot grey"></i>작성불가</span>
+          <span><i class="legend-dot blue"></i>작성완료</span>
+          <span><i class="legend-dot outline"></i>작성가능</span>
+        </div>
+      </div>
+
+      <div class="seat-cabin">
+        <div class="seat-grid-v2" id="seat-grid-v2"></div>
+      </div>
+    </div>
 
     <!-- 오늘의 미션 탭 -->
     <section class="tab-panel" id="tab-mission">
@@ -1321,7 +1336,6 @@
     await loadStreak();
     await loadTotalPrayerCount();
     await renderTop3Podium();
-    await renderDashboardTrainTracks();
     await loadRecentPrayers();
     await loadVerse();
     await loadMissions();
@@ -1462,15 +1476,21 @@
       return;
     }
 
-    wrap.innerHTML = data.map(() => `
+    wrap.innerHTML = data.map(p => {
+      const color = colorForGroup(p.profiles?.groups?.name);
+      return `
       <div class="recent-prayer-item">
-        <div class="recent-prayer-head">
-          <span class="recent-prayer-author"></span>
-          <span class="recent-prayer-time"></span>
+        <div class="recent-prayer-bar" style="background:${color};"></div>
+        <div class="recent-prayer-body">
+          <div class="recent-prayer-head">
+            <span class="recent-prayer-author"></span>
+            <span class="recent-prayer-time"></span>
+          </div>
+          <div class="recent-prayer-content"></div>
         </div>
-        <div class="recent-prayer-content"></div>
       </div>
-    `).join("");
+    `;
+    }).join("");
 
     const items = wrap.querySelectorAll(".recent-prayer-item");
     data.forEach((p, i) => {
@@ -1515,32 +1535,7 @@
     });
   }
 
-  async function renderDashboardTrainTracks() {
-    const wrap = document.getElementById("dashboard-train-tracks");
-    const { data: groups } = await activeClient.from("groups").select("id, name").order("name");
-    if (!groups) return;
 
-    const counts = await Promise.all(groups.map(g =>
-      activeClient.from("prayers").select("id", { count: "exact", head: true }).eq("group_id", g.id)
-    ));
-
-    wrap.innerHTML = groups.map((g, i) => {
-      const total = counts[i].count ?? 0;
-      const p = computeProgress(total);
-      const color = colorForGroup(g.name);
-      return `
-        <div class="track-row" onclick="activateTabPanel('journey'); openTrainDetail('${g.id}')">
-          <span class="track-engine">🚂</span>
-          <div class="track-rail">
-            <div class="track-rail-fill" style="width:${(p.steps / JOURNEY_TOTAL_STEPS) * 100}%; background:${color};"></div>
-          </div>
-          <div class="track-name-tag" style="border-color:${color}; color:${color};">
-            ${p.lapCount > 0 ? `<span class="lap-badge">🏆${p.lapCount}</span>` : ""}${g.name}
-          </div>
-        </div>
-      `;
-    }).join("");
-  }
 
   // ---------------- 오늘의 말씀 ----------------
   function todayIsoDate() {
@@ -2016,6 +2011,43 @@
     return cachedGroups;
   }
 
+  async function loadTrainList() {
+    const wrap = document.getElementById("train-list");
+    const groups = await getGroupsCached();
+    if (!groups || groups.length === 0) { wrap.innerHTML = `<div class="placeholder-note">목장 목록을 불러오지 못했어요</div>`; return; }
+
+    const counts = await Promise.all(groups.map(g =>
+      activeClient.from("prayers").select("id", { count: "exact", head: true }).eq("group_id", g.id)
+    ));
+
+    wrap.innerHTML = groups.map((g, i) => {
+      const total = counts[i].count ?? 0;
+      const p = computeProgress(total);
+      const isMine = g.id === currentUser.groupId;
+      return `
+        <div class="train-card ${isMine ? "mine" : ""}" onclick="openTrainDetail('${g.id}')">
+          <div class="train-row">
+            <div class="train-name-wrap">
+              <span class="train-icon">🚂</span>
+              <div>
+                <div class="train-name">${g.name}</div>
+                ${isMine ? '<div class="train-mine-tag">내 목장</div>' : ""}
+              </div>
+            </div>
+            <div class="train-step-label">${p.lapCount > 0 ? `🏆${p.lapCount} · ` : ""}${p.steps}/${JOURNEY_TOTAL_STEPS}칸</div>
+          </div>
+          <div class="train-mini-bar-track"><div class="train-mini-bar-fill" style="width:${(p.steps / JOURNEY_TOTAL_STEPS) * 100}%"></div></div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function showTrainList() {
+    document.getElementById("seat-screen").classList.remove("active");
+    document.getElementById("main-tab-bar").style.display = "flex";
+    loadTrainList();
+  }
+
   async function toggleGroupSwitcher() {
     const menu = document.getElementById("group-switcher-menu");
     if (menu.style.display === "block") { menu.style.display = "none"; return; }
@@ -2042,7 +2074,7 @@
     menu.style.display = "none";
   });
 
-  // ---------------- 기차 여행: 좌석선택 (KTX 스타일, 탭 콘텐츠로 통합) ----------------
+  // ---------------- 기차 여행: 좌석선택 (KTX 스타일) ----------------
   let currentSeatGroupId = null;
   let currentSeatDateOffset = 0; // 0 = 오늘
 
@@ -2057,17 +2089,9 @@
   async function openTrainDetail(groupId) {
     currentSeatGroupId = groupId;
     currentSeatDateOffset = 0;
+    document.getElementById("main-tab-bar").style.display = "none";
+    document.getElementById("seat-screen").classList.add("active");
     await renderSeatScreen();
-  }
-
-  async function renderJourneyTab() {
-    if (currentUser.groupId) {
-      await openTrainDetail(currentUser.groupId);
-    } else {
-      // 무소속: 목장 목록 중 첫 번째를 기본으로 보여주고, 드롭다운으로 바로 전환 가능
-      const groups = await getGroupsCached();
-      if (groups.length > 0) await openTrainDetail(groups[0].id);
-    }
   }
 
   function seatDateNav(delta) {
@@ -2259,7 +2283,7 @@
     if (error) { errEl.textContent = "저장 중 오류가 발생했어요."; return; }
 
     await renderSeatScreen();
-    await renderDashboardTrainTracks();
+    await loadTrainList();
     await loadTotalPrayerCount();
     await loadStreak();
     await loadRecentPrayers();
@@ -2275,7 +2299,7 @@
 
     closeMemberPrayers();
     await renderSeatScreen();
-    await renderDashboardTrainTracks();
+    await loadTrainList();
     await loadTotalPrayerCount();
     await loadStreak();
     await loadRecentPrayers();
@@ -2371,7 +2395,7 @@
   function switchTab(tab) {
     activateTabPanel(tab);
     if (tab === "mission") loadMissions();
-    if (tab === "journey") renderJourneyTab();
+    if (tab === "journey") loadTrainList();
   }
 
   // ---------------- 초기화: 이미 로그인돼있으면(둘 중 어느 저장소든) 바로 진입 ----------------
