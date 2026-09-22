@@ -831,7 +831,6 @@
   <header class="app-header">
     <div class="app-header-title" id="welcome-name">-</div>
     <div class="app-header-actions">
-      <button class="icon-btn" id="notif-btn" onclick="handleEnableNotifications()" title="알림 받기">🔕</button>
       <button class="icon-btn" onclick="handleLogout()" title="로그아웃">⎋</button>
     </div>
   </header>
@@ -1327,8 +1326,9 @@
     await loadVerse();
     await loadMissions();
     await loadNotices();
-    await registerServiceWorker();
-    await checkNotificationStatus();
+    // 알림 기능은 보류 중 — 준비되면 아래 두 줄 다시 활성화
+    // await registerServiceWorker();
+    // await checkNotificationStatus();
   }
 
   // ---------------- 진행 칸수 계산 (공용) ----------------
