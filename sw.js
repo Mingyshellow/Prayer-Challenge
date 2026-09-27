@@ -7,7 +7,7 @@ self.addEventListener('push', (event) => {
     body: data.body || '새 소식이 있어요',
     icon: data.icon || undefined,
     badge: data.badge || undefined,
-    data: { url: data.url || '/' }
+    data: { url: data.url || 'https://mingyshellow.github.io/Prayer-Challenge/' }
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -15,5 +15,5 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data?.url || '/'));
+  event.waitUntil(clients.openWindow(event.notification.data?.url || 'https://mingyshellow.github.io/Prayer-Challenge/'));
 });
