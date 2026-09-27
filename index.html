@@ -2343,23 +2343,40 @@
       return;
     }
 
+    const reg = await registerServiceWorker();
+    if (!reg) { alert("알림 등록에 실패했어요."); return; }
+
+    const existingSub = await reg.pushManager.getSubscription();
+
+    // 이미 구독 중이면 -> 끄기
+    if (existingSub) {
+      try {
+        const endpoint = existingSub.endpoint;
+        await existingSub.unsubscribe();
+        await activeClient.from("push_subscriptions").delete().eq("endpoint", endpoint);
+
+        const btn = document.getElementById("notif-btn");
+        btn.textContent = "🔕";
+        btn.classList.remove("notif-on");
+        alert("알림이 꺼졌어요.");
+      } catch (e) {
+        alert("알림 끄기 중 오류가 발생했어요: " + e.message);
+      }
+      return;
+    }
+
+    // 구독 안 되어있으면 -> 켜기
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
       alert("알림 권한이 거부됐어요. 브라우저/기기 설정에서 알림 권한을 다시 허용해주세요.");
       return;
     }
 
-    const reg = await registerServiceWorker();
-    if (!reg) { alert("알림 등록에 실패했어요."); return; }
-
     try {
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        });
-      }
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+      });
       const subJson = sub.toJSON();
 
       const { error } = await activeClient.from("push_subscriptions").upsert({
@@ -2374,7 +2391,7 @@
       const btn = document.getElementById("notif-btn");
       btn.textContent = "🔔";
       btn.classList.add("notif-on");
-      alert("알림이 켜졌어요! 같은 목장에 새 기도문이 올라오면 알려드릴게요.");
+      alert("알림이 켜졌어요! 새 기도문이 올라오면 알려드릴게요.");
     } catch (e) {
       alert("알림 등록 중 오류가 발생했어요: " + e.message);
     }
