@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>기도 기차</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Do+Hyeon&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f1e4;
+    --surface: #ffffff;
+    --rail: #e2d9c8;
+    --amber: #ff8f66;
+    --text: #3a3226;
+    --text-muted: #8a8070;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display:flex; align-items:center; justify-content:center;
+    background: var(--bg); color: var(--text); font-family: 'Pretendard', sans-serif;
+    padding: 24px;
+  }
+  .card {
+    max-width: 380px; width: 100%; text-align:center;
+    background: var(--surface); border: 1px solid var(--rail); border-radius: 20px;
+    padding: 40px 28px; box-shadow: 0 20px 50px rgba(44,62,87,0.12);
+  }
+  .icon { font-size: 48px; margin-bottom: 14px; animation: bounce 1.4s ease-in-out infinite; }
+  @keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  h1 { font-family: 'Do Hyeon', sans-serif; font-size: 22px; margin: 0 0 10px; color: var(--text); }
+  p { font-size: 14px; line-height: 1.6; color: var(--text-muted); margin: 0; }
+  .eta { margin-top: 18px; display:inline-block; background: #fff3ec; color: var(--amber);
+    border: 1px solid #ffd9c4; border-radius: 999px; padding: 6px 16px; font-size: 13px; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">🚂</div>
+    <h1>잠시 점검 중이에요</h1>
+    <p>기도기차에 새로운 기능을 추가하고 있어요.<br/>조금만 기다려주시면 금방 돌아올게요!</p>
+    <div class="eta">곧 다시 만나요 🙏</div>
+  </div>
+</body>
+</html>
