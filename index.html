@@ -832,9 +832,9 @@
     content:""; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
     border-width: 8px 8px 0; border-style: solid; border-color: #fff transparent transparent;
   }
-  .char-avatar-wrap { width: 150px; height: 150px; display:flex; align-items:center; justify-content:center; }
-  .char-avatar-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .char-avatar-wrap { display:flex; align-items:center; justify-content:center; }
   .char-avatar-wrap .char-stack { width: 120px; }
+  .char-avatar-wrap .char-stack-base { max-width:none; max-height:none; }
 
   /* 캐릭터 + 착용 아이템 레이어 합성 (임시 좌표, 실제 착용샷 에셋 받으면 교체 예정) */
   .char-stack { position: relative; display: inline-block; }
@@ -2958,8 +2958,12 @@
   }
 
   function closeDressRoom() {
-    // 미저장 변경사항은 안내없이 그냥 버림
+    // 미저장 변경사항은 안내없이 그냥 버림(= dressState.equipped가 저장된 최종 상태)
     document.getElementById("dressroom-screen").classList.remove("active");
+    // 메인 캐릭터 화면이 드레스룸에서 바뀐 장착 상태를 반영하도록 동기화
+    charMainEquipped.equipped = { ...dressState.equipped };
+    charMainEquipped.items = dressState.items.slice();
+    renderCharacterMain();
   }
 
   function setDressFilter(filter) {
