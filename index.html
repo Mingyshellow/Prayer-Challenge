@@ -834,6 +834,12 @@
   }
   .char-avatar-wrap { width: 150px; height: 150px; display:flex; align-items:center; justify-content:center; }
   .char-avatar-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .char-avatar-wrap .char-stack { width: 120px; }
+
+  /* 캐릭터 + 착용 아이템 레이어 합성 (임시 좌표, 실제 착용샷 에셋 받으면 교체 예정) */
+  .char-stack { position: relative; display: inline-block; }
+  .char-stack-base { display:block; width:100%; height:auto; position:relative; z-index:1; }
+  .char-stack-layer { position:absolute; max-width:none; height:auto; pointer-events:none; z-index:2; }
   .char-nickname { font-family:'Pretendard', sans-serif; font-weight:700; font-size: 16px; }
   .char-action-row { display:flex; gap: 10px; width:100%; margin-top: 8px; }
   .char-action-btn {
@@ -877,6 +883,7 @@
   .dress-scroll-area { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 16px; min-height:0; }
   .dress-char-preview { display:flex; justify-content:center; padding: 10px 0 4px; }
   .dress-char-preview img { width: 90px; height: auto; }
+  .dress-char-preview .char-stack { width: 120px; }
   .dress-filter-row { display:flex; gap:8px; margin: 10px 0; }
   .dress-filter-btn {
     flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--rail); background:var(--surface);
@@ -2747,6 +2754,43 @@
   // ================================================
   const CHAR_EMOJI = { "춘이": "🐸", "청이": "🌱" };
   const CHAR_IMAGE = { "춘이": "characters/chuni.png", "청이": "characters/chungi.png" };
+
+  // 아이템별 착용 위치 (피그마에서 실측한 좌표 기반, 청이 187x290 캔버스 기준 %)
+  // 아직 좌표 못 받은 아이템은 여기 없고, 그런 아이템은 장착해도 비주얼엔 안 나타남(데이터는 정상 저장됨)
+  const ITEM_POSITION = {
+    "기도열차 기사님의 옷": { left: "5.88%", top: "67.24%", width: "82.35%" },
+    "산타옷": { left: "9.63%", top: "67.93%", width: "81.82%" },
+    "정장": { left: "8.56%", top: "68.28%", width: "82.89%" },
+    "검사의 옷": { left: "5.88%", top: "68.62%", width: "86.63%" },
+    "못말리는 옷": { left: "11.50%", top: "68.45%", width: "78.61%" },
+    "스펀지 코스튬": { left: "12.30%", top: "68.28%", width: "75.40%" },
+    "못말리는 잠옷": { left: "10.70%", top: "67.93%", width: "78.07%" },
+    "인사성 밝은 고양이의 옷": { left: "10.43%", top: "68.28%", width: "79.14%" },
+    "최첨단 철제 갑옷": { left: "7.49%", top: "67.93%", width: "85.56%" },
+    "눈사람": { left: "-3.21%", top: "66.55%", width: "108.56%" }
+  };
+  // 카테고리별 z-index만 유지 (여러 개 겹쳤을 때 쌓이는 순서)
+  const ITEM_LAYER_ZINDEX = { "모자": 5, "얼굴": 6, "의상": 2, "소품": 7, "왼쪽": 4, "오른쪽": 4 };
+
+  // 캐릭터 기본 이미지 위에 장착된 아이템들을 레이어로 겹쳐서 HTML을 만듦
+  // 피그마에서 실측한 좌표가 있는 아이템만 비주얼로 보여지고, 좌표 없는 아이템은 데이터만 저장되고 비주얼엔 안 나옴
+  function buildCharStackHTML(charType, equippedMap, itemLookup) {
+    const baseSrc = CHAR_IMAGE[charType] || CHAR_IMAGE["청이"];
+    const layers = Object.keys(equippedMap || {}).map(cat => {
+      const itemId = equippedMap[cat];
+      if (!itemId) return "";
+      const item = (itemLookup || []).find(it => it.id === itemId);
+      if (!item || !item.image_url) return "";
+      const pos = ITEM_POSITION[item.name];
+      if (!pos) return ""; // 좌표 아직 없는 아이템은 비주얼 생략
+      const zIndex = ITEM_LAYER_ZINDEX[cat] || 3;
+      const styleStr = `top:${pos.top}; left:${pos.left}; width:${pos.width}; z-index:${zIndex};`;
+      return `<img class="char-stack-layer" src="${item.image_url}" alt="${item.name || ""}" style="${styleStr}" />`;
+    }).join("");
+    return `<div class="char-stack"><img class="char-stack-base" src="${baseSrc}" alt="${charType || ""}" />${layers}</div>`;
+  }
+
+  let charMainEquipped = { equipped: {}, items: [] };
   const CHAR_CHEER_MESSAGES = [
     "눈에 보이지 않아도, 네 기도는 그 사람에게 닿고 있어! 😊",
     "오늘도 소중한 기도의 씨앗 하나, 심는거 잊지 않았지? 🌱",
@@ -2791,6 +2835,20 @@
       return;
     }
 
+    const { data: equippedRows } = await activeClient
+      .from("user_equipped_items")
+      .select("category, item_id, items(id, image_url, name, category)")
+      .eq("user_id", currentUser.id);
+
+    charMainEquipped.equipped = {};
+    charMainEquipped.items = [];
+    (equippedRows ?? []).forEach(r => {
+      if (r.items) {
+        charMainEquipped.equipped[r.category] = r.item_id;
+        charMainEquipped.items.push(r.items);
+      }
+    });
+
     renderCharacterMain();
   }
 
@@ -2798,7 +2856,7 @@
     document.getElementById("char-nickname-title").textContent = currentUser.characterNickname || "-";
     document.getElementById("char-balance-display").textContent = currentUser.talentBalance ?? 0;
     document.getElementById("char-avatar-wrap").innerHTML =
-      `<img src="${CHAR_IMAGE[currentUser.characterType] || CHAR_IMAGE["청이"]}" alt="${currentUser.characterType || ""}" />`;
+      buildCharStackHTML(currentUser.characterType, charMainEquipped.equipped, charMainEquipped.items);
     const msg = CHAR_CHEER_MESSAGES[Math.floor(Math.random() * CHAR_CHEER_MESSAGES.length)];
     document.getElementById("char-speech-bubble").textContent = msg;
   }
@@ -2888,7 +2946,7 @@
     document.querySelectorAll(".dress-category-btn").forEach(b => b.classList.toggle("active", b.dataset.cat === "전체"));
     document.getElementById("dress-balance-display").textContent = currentUser.talentBalance ?? 0;
     document.getElementById("dress-char-preview").innerHTML =
-      `<img src="${CHAR_IMAGE[currentUser.characterType] || CHAR_IMAGE["청이"]}" alt="${currentUser.characterType || ""}" />`;
+      buildCharStackHTML(currentUser.characterType, dressState.pendingEquipped, dressState.items);
 
     renderDressGrid();
     document.getElementById("dressroom-screen").classList.add("active");
@@ -2948,6 +3006,8 @@
       // 같은 카테고리 내 = 교체 / 다른 카테고리 = 중첩
       dressState.pendingEquipped[category] = itemId;
     }
+    document.getElementById("dress-char-preview").innerHTML =
+      buildCharStackHTML(currentUser.characterType, dressState.pendingEquipped, dressState.items);
     renderDressGrid();
     updateDressSaveButton();
   }
