@@ -260,11 +260,6 @@
   }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; animation: tab-fade-in .25s ease; }
-  /* 캐릭터 탭: 내용이 짧아도 하단에 빈 공간이 남지 않도록, 헤더는 위에 고정하고
-     나머지(말풍선+캐릭터+버튼)는 남는 공간 안에서 수직 중앙에 오게 함 */
-  #tab-character.active { display:flex; flex-direction:column; min-height:100%; }
-  #tab-character .char-header-row { flex-shrink:0; }
-  #tab-character .char-stage { flex:1; justify-content:flex-end; padding-bottom: 20px; }
   @keyframes tab-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
   .placeholder-note {
