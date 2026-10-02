@@ -882,8 +882,8 @@
   .dress-top-fixed { flex-shrink:0; padding: 10px 16px 0; background: var(--bg); }
   .dress-scroll-area { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding: 0 16px; min-height:0; }
   .dress-char-preview { display:flex; justify-content:center; padding: 14px 0 10px; }
-  .dress-char-preview img { width: 90px; height: auto; }
   .dress-char-preview .char-stack { width: 170px; }
+  .dress-char-preview .char-stack-base { max-width:none; max-height:none; }
   .dress-filter-row { display:flex; gap:8px; margin: 10px 0; }
   .dress-filter-btn {
     flex:1; padding:8px 0; border-radius:10px; border:1px solid var(--rail); background:var(--surface);
@@ -2767,7 +2767,12 @@
     "못말리는 잠옷": { left: "10.70%", top: "67.93%", width: "78.07%" },
     "인사성 밝은 고양이의 옷": { left: "10.43%", top: "68.28%", width: "79.14%" },
     "최첨단 철제 갑옷": { left: "7.49%", top: "67.93%", width: "85.56%" },
-    "눈사람": { left: "-3.21%", top: "66.55%", width: "108.56%" }
+    "눈사람": { left: "-3.21%", top: "66.55%", width: "108.56%" },
+    "해적왕 지망생의 옷": { left: "7.49%", top: "68.28%", width: "83.42%" },
+    "카우보이 옷": { left: "5.88%", top: "66.55%", width: "89.30%" },
+    "멜빵바지": { left: "12.30%", top: "67.93%", width: "73.26%" },
+    "골리앗 카운터": { left: "-10.16%", top: "66.55%", width: "96.26%" },
+    "곰돌이 후드티": { left: "-3.21%", top: "-0.34%", width: "105.88%" }
   };
   // 카테고리별 z-index만 유지 (여러 개 겹쳤을 때 쌓이는 순서)
   const ITEM_LAYER_ZINDEX = { "모자": 5, "얼굴": 6, "의상": 2, "소품": 7, "왼쪽": 4, "오른쪽": 4 };
