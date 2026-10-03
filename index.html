@@ -812,9 +812,12 @@
 
   /* ---------- 청이&춘이 탭 ---------- */
   .char-header-row {
-    display:flex; align-items:center; justify-content:space-between; margin-bottom: 14px;
+    position:relative; display:flex; align-items:center; justify-content:flex-end; margin-bottom: 14px; min-height: 34px;
   }
-  .char-title { font-family:'Do Hyeon', sans-serif; font-size: 24px; color: var(--text); }
+  .char-title {
+    position:absolute; left:50%; top:50%; transform:translate(-50%, -50%);
+    font-family:'Do Hyeon', sans-serif; font-size: 24px; color: var(--text);
+  }
   .char-balance-badge {
     display:flex; align-items:center; gap:4px; background: var(--surface-2);
     border:1px solid var(--rail); border-radius: 20px; padding: 6px 12px;
@@ -826,18 +829,16 @@
     flex: 1; min-height: 0;
   }
   .char-speech-bubble {
-    background: #fff; border:1px solid var(--rail); border-radius: 16px; padding: 12px 16px;
-    font-family:'Pretendard', sans-serif; font-size: 13.5px; line-height:1.5; text-align:center;
-    position: relative; max-width: 280px;
+    background: #fff; border:1px solid var(--rail); border-radius: 18px; padding: 16px 20px;
+    font-family:'Pretendard', sans-serif; font-size: 15.5px; line-height:1.5; text-align:center;
+    position: relative; max-width: 320px;
   }
   .char-speech-bubble::after {
     content:""; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
     border-width: 8px 8px 0; border-style: solid; border-color: #fff transparent transparent;
   }
-  .char-bottom-group {
-    margin-top: auto; margin-bottom: 64px; display:flex; flex-direction:column; align-items:center;
-    gap: 16px; width:100%;
-  }
+  .char-spacer-top { flex: 1; }
+  .char-spacer-bottom { flex: 2; }
   .char-avatar-wrap { display:flex; align-items:center; justify-content:center; }
   .char-avatar-wrap .char-stack { width: 170px; }
   .char-avatar-wrap .char-stack-base { max-width:none; max-height:none; }
@@ -847,7 +848,7 @@
   .char-stack-base { display:block; width:100%; height:auto; position:relative; z-index:1; }
   .char-stack-layer { position:absolute; max-width:none; height:auto; pointer-events:none; z-index:2; }
   .char-nickname { font-family:'Pretendard', sans-serif; font-weight:700; font-size: 16px; }
-  .char-action-row { display:flex; gap: 10px; width:100%; margin-top: 8px; }
+  .char-action-row { display:flex; gap: 10px; width:100%; margin-top: 8px; margin-bottom: 8px; }
   .char-action-btn {
     flex:1; background: var(--surface); border:1px solid var(--rail); border-radius: 14px;
     padding: 14px 0; font-family:'Pretendard', sans-serif; font-weight:600; font-size: 14px;
@@ -1127,12 +1128,12 @@
 
       <div class="char-stage">
         <div class="char-speech-bubble" id="char-speech-bubble">-</div>
-        <div class="char-bottom-group">
-          <div class="char-avatar-wrap" id="char-avatar-wrap"></div>
-          <div class="char-action-row">
-            <button class="char-action-btn" onclick="openDressRoom()">드레스룸</button>
-            <button class="char-action-btn" onclick="goToRecentPrayers()">나의 기도</button>
-          </div>
+        <div class="char-spacer-top"></div>
+        <div class="char-avatar-wrap" id="char-avatar-wrap"></div>
+        <div class="char-spacer-bottom"></div>
+        <div class="char-action-row">
+          <button class="char-action-btn" onclick="openDressRoom()">드레스룸</button>
+          <button class="char-action-btn" onclick="goToRecentPrayers()">나의 기도</button>
         </div>
       </div>
     </section>
