@@ -877,6 +877,11 @@
     cursor:pointer; font-family:'Pretendard',sans-serif; font-weight:700;
   }
   .char-pick-card.selected { border-color: var(--amber); background: var(--amber-glow); }
+  .char-pick-card.disabled { opacity:.45; filter:grayscale(.6); cursor:not-allowed; pointer-events:none; position:relative; }
+  .char-pick-soon {
+    position:absolute; top:8px; right:8px; background: var(--text-faint); color:#fff;
+    font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px;
+  }
   .char-pick-emoji { font-size: 64px; }
   .char-pick-emoji img { width: 72px; height: auto; }
   .char-name-input-field {
@@ -1304,9 +1309,10 @@
       <div class="modal-head"><h2>환영합니다.</h2></div>
       <p class="char-intro-copy">춘이 또는 청이를 골라주세요.<br/>결정 후 변경할 수 없습니다.</p>
       <div class="char-pick-row">
-        <div class="char-pick-card" id="char-pick-choon" onclick="selectCharacterType('춘이')">
+        <div class="char-pick-card disabled" id="char-pick-choon">
           <div class="char-pick-emoji"><img src="characters/chuni.png" alt="춘이" /></div>
           <div>춘이</div>
+          <div class="char-pick-soon">준비중</div>
         </div>
         <div class="char-pick-card" id="char-pick-chong" onclick="selectCharacterType('청이')">
           <div class="char-pick-emoji"><img src="characters/chungi.png" alt="청이" /></div>
@@ -2942,6 +2948,7 @@
   }
 
   async function selectCharacterType(type) {
+    if (type === "춘이") { alert("춘이는 현재 준비중이에요. 청이를 선택해주세요!"); return; }
     const { error } = await activeClient
       .from("profiles")
       .update({ character_type: type })
