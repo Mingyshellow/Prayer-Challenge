@@ -2854,21 +2854,36 @@
   // 카테고리별 z-index만 유지 (여러 개 겹쳤을 때 쌓이는 순서)
   const ITEM_LAYER_ZINDEX = { "모자": 5, "얼굴": 6, "의상": 2, "소품": 7, "왼쪽": 4, "오른쪽": 4 };
 
+  // 춘이 전용 착용 위치 (춘이 205x280 캔버스 기준 %, 춘이 기준점은 피그마에서 행마다 500,Y로 측정)
+  // 이미지 파일은 청이와 공용(items/item_XXX.png)이고 위치%만 캐릭터별로 다름
+  const ITEM_POSITION_CHUNI = {
+    "items/item_016.png": { left: "-5.37%", top: "6.79%", width: "103.90%" }, // 기관사 모자
+    "items/item_017.png": { left: "1.46%", top: "4.64%", width: "92.68%" }, // 비니
+    "items/item_018.png": { left: "-17.07%", top: "-3.93%", width: "133.17%" }, // 카우보이 모자
+    "items/item_019.png": { left: "-11.22%", top: "7.50%", width: "120.00%" }, // 양머리
+    "items/item_020.png": { left: "-6.83%", top: "0.71%", width: "116.59%" }, // 밀짚모자
+    "items/item_021.png": { left: "-10.24%", top: "-5.71%", width: "112.68%" }, // 에어팟 맥스
+    "items/item_022.png": { left: "17.07%", top: "8.93%", width: "34.15%" }, // 유니콘 뿔
+    "items/item_023.png": { left: "-4.39%", top: "-10.00%", width: "106.83%" }, // 똥모자
+    "items/item_024.png": { left: "-8.78%", top: "6.79%", width: "110.24%" }, // ^0^
+    "items/item_025.png": { left: "53.66%", top: "7.50%", width: "35.12%" }, // 달팽이
+    "items/item_026.png": { left: "50.24%", top: "3.93%", width: "46.34%" }, // 산타모자
+    "items/item_027.png": { left: "4.88%", top: "3.93%", width: "89.76%" }, // 천사링
+    "items/item_028.png": { left: "55.61%", top: "13.21%", width: "34.15%" }, // 리본
+    "items/item_029.png": { left: "9.27%", top: "14.64%", width: "38.54%" } // 당근뿔
+  };
+
   // 캐릭터 기본 이미지 위에 장착된 아이템들을 레이어로 겹쳐서 HTML을 만듦
   // 피그마에서 실측한 좌표가 있는 아이템만 비주얼로 보여지고, 좌표 없는 아이템은 데이터만 저장되고 비주얼엔 안 나옴
   function buildCharStackHTML(charType, equippedMap, itemLookup) {
     const baseSrc = CHAR_IMAGE[charType] || CHAR_IMAGE["청이"];
-    // 지금 받은 좌표는 전부 청이 기준으로 실측한 값이라 춘이는 비율이 안 맞음.
-    // 춘이용 좌표 따로 받기 전까진 춘이는 비주얼 합성 생략(기본 모습만 표시).
-    if (charType !== "청이") {
-      return `<div class="char-stack"><img class="char-stack-base" src="${baseSrc}" alt="${charType || ""}" /></div>`;
-    }
+    const posTable = charType === "춘이" ? ITEM_POSITION_CHUNI : ITEM_POSITION;
     const layers = Object.keys(equippedMap || {}).map(cat => {
       const itemId = equippedMap[cat];
       if (!itemId) return "";
       const item = (itemLookup || []).find(it => it.id === itemId);
       if (!item || !item.image_url) return "";
-      const pos = ITEM_POSITION[item.image_url];
+      const pos = posTable[item.image_url];
       if (!pos) return ""; // 좌표 아직 없는 아이템은 비주얼 생략
       const zIndex = ITEM_LAYER_ZINDEX[cat] || 3;
       const styleStr = `top:${pos.top}; left:${pos.left}; width:${pos.width}; z-index:${zIndex};`;
