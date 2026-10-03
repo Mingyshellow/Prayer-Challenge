@@ -2856,21 +2856,59 @@
 
   // 춘이 전용 착용 위치 (춘이 205x280 캔버스 기준 %, 춘이 기준점은 피그마에서 행마다 500,Y로 측정)
   // 이미지 파일은 청이와 공용(items/item_XXX.png)이고 위치%만 캐릭터별로 다름
+  // 춘이 캐릭터 이미지 기준: 220x274 (여백 넉넉한 재교체 버전)
   const ITEM_POSITION_CHUNI = {
-    "items/item_016.png": { left: "-5.37%", top: "6.79%", width: "103.90%" }, // 기관사 모자
-    "items/item_017.png": { left: "1.46%", top: "4.64%", width: "92.68%" }, // 비니
-    "items/item_018.png": { left: "-17.07%", top: "-3.93%", width: "133.17%" }, // 카우보이 모자
-    "items/item_019.png": { left: "-11.22%", top: "7.50%", width: "120.00%" }, // 양머리
-    "items/item_020.png": { left: "-6.83%", top: "0.71%", width: "116.59%" }, // 밀짚모자
-    "items/item_021.png": { left: "-10.24%", top: "-5.71%", width: "112.68%" }, // 에어팟 맥스
-    "items/item_022.png": { left: "17.07%", top: "8.93%", width: "34.15%" }, // 유니콘 뿔
-    "items/item_023.png": { left: "-4.39%", top: "-10.00%", width: "106.83%" }, // 똥모자
-    "items/item_024.png": { left: "-8.78%", top: "6.79%", width: "110.24%" }, // ^0^
-    "items/item_025.png": { left: "53.66%", top: "7.50%", width: "35.12%" }, // 달팽이
-    "items/item_026.png": { left: "50.24%", top: "3.93%", width: "46.34%" }, // 산타모자
-    "items/item_027.png": { left: "4.88%", top: "3.93%", width: "89.76%" }, // 천사링
-    "items/item_028.png": { left: "55.61%", top: "13.21%", width: "34.15%" }, // 리본
-    "items/item_029.png": { left: "9.27%", top: "14.64%", width: "38.54%" } // 당근뿔
+    "items/item_016.png": { left: "-5.00%", top: "6.93%", width: "96.82%" }, // 기관사 모자
+    "items/item_017.png": { left: "1.36%", top: "4.74%", width: "86.36%" }, // 비니
+    "items/item_018.png": { left: "-15.91%", top: "-4.01%", width: "124.09%" }, // 카우보이 모자
+    "items/item_019.png": { left: "-10.45%", top: "7.66%", width: "111.82%" }, // 양머리
+    "items/item_020.png": { left: "-6.36%", top: "0.73%", width: "108.64%" }, // 밀짚모자
+    "items/item_021.png": { left: "-9.55%", top: "-5.84%", width: "105.00%" }, // 에어팟 맥스
+    "items/item_022.png": { left: "15.91%", top: "9.12%", width: "31.82%" }, // 유니콘 뿔
+    "items/item_023.png": { left: "-4.09%", top: "-10.22%", width: "99.55%" }, // 똥모자
+    "items/item_024.png": { left: "-8.18%", top: "6.93%", width: "102.73%" }, // ^0^
+    "items/item_025.png": { left: "50.00%", top: "7.66%", width: "32.73%" }, // 달팽이
+    "items/item_026.png": { left: "46.82%", top: "4.01%", width: "43.18%" }, // 산타모자
+    "items/item_027.png": { left: "4.55%", top: "4.01%", width: "83.64%" }, // 천사링
+    "items/item_028.png": { left: "51.82%", top: "13.50%", width: "31.82%" }, // 리본
+    "items/item_029.png": { left: "8.64%", top: "14.96%", width: "35.91%" }, // 당근뿔
+    "items/item_030.png": { left: "10.45%", top: "48.18%", width: "44.55%" }, // 제일 쌔지는 눈
+    "items/item_031.png": { left: "22.73%", top: "48.54%", width: "19.55%" }, // 코주부 코
+    "items/item_032.png": { left: "19.55%", top: "49.27%", width: "13.64%" }, // 당근 코
+    "items/item_033.png": { left: "5.00%", top: "52.55%", width: "59.55%" }, // 선글라스
+    "items/item_034.png": { left: "-7.27%", top: "51.46%", width: "80.45%" }, // 고양이 수염
+    "items/item_035.png": { left: "19.09%", top: "51.09%", width: "14.55%" }, // 유니콘 뿔(코)
+    "items/item_036.png": { left: "0.45%", top: "43.80%", width: "85.91%" }, // 뿔테 안경
+    "items/item_037.png": { left: "24.09%", top: "48.54%", width: "10.45%" }, // 광대 코
+    "items/item_038.png": { left: "30.91%", top: "78.47%", width: "44.55%" }, // 장검
+    "items/item_039.png": { left: "43.18%", top: "81.39%", width: "23.64%" }, // 성경책
+    "items/item_040.png": { left: "35.91%", top: "83.21%", width: "59.09%" }, // 뒤집개
+    "items/item_041.png": { left: "21.82%", top: "83.94%", width: "63.64%" }, // 뼈다귀
+    "items/item_042.png": { left: "25.91%", top: "83.94%", width: "66.82%" }, // 막대사탕
+    "items/item_043.png": { left: "43.64%", top: "84.67%", width: "49.09%" }, // 야구배트
+    "items/item_044.png": { left: "31.82%", top: "75.91%", width: "43.18%" }, // 뚫어뻥
+    "items/item_045.png": { left: "37.73%", top: "75.91%", width: "43.18%" }, // 곡괭이
+    "items/item_046.png": { left: "41.36%", top: "86.86%", width: "52.73%" }, // 수상한 연필
+    "items/item_047.png": { left: "-17.73%", top: "72.63%", width: "30.45%" }, // 말많은 까마귀
+    "items/item_048.png": { left: "-15.45%", top: "79.20%", width: "25.91%" }, // 탱탱볼
+    "items/item_049.png": { left: "-9.09%", top: "79.20%", width: "20.45%" }, // 엄지척
+    "items/item_051.png": { left: "-13.64%", top: "74.45%", width: "25.91%" }, // 토끼
+    "items/item_052.png": { left: "-13.64%", top: "77.37%", width: "20.45%" }, // 강아지
+    "items/item_053.png": { left: "-21.82%", top: "73.72%", width: "27.73%" }, // 흰 강아지
+    "items/item_054.png": { left: "-6.82%", top: "85.40%", width: "15.00%" }, // 참새
+    "items/item_055.png": { left: "-6.82%", top: "83.21%", width: "24.09%" }, // 하트 나눔
+    "items/item_056.png": { left: "-7.73%", top: "79.20%", width: "15.00%" }, // 무릎 꿇고 기도해
+    "items/item_057.png": { left: "-26.82%", top: "64.60%", width: "39.09%" }, // 변기 (왼쪽)
+    "items/item_058.png": { left: "76.36%", top: "76.64%", width: "28.64%" }, // 듀 (오른쪽)
+    "items/item_059.png": { left: "72.27%", top: "79.93%", width: "29.55%" }, // 고양이 (오른쪽)
+    "items/item_060.png": { left: "71.82%", top: "83.58%", width: "24.55%" }, // 드러누운 강아지 (오른쪽)
+    "items/item_061.png": { left: "73.18%", top: "5.11%", width: "26.82%" }, // 하트 원숭이 (오른쪽)
+    "items/item_062.png": { left: "76.36%", top: "74.45%", width: "20.45%" }, // 장난감 (오른쪽)
+    "items/item_063.png": { left: "77.27%", top: "70.80%", width: "22.27%" }, // 조랑말 (오른쪽) - X좌표 "-2670" 오타로 보여 170으로 가정, 확인 필요
+    "items/item_064.png": { left: "75.91%", top: "63.87%", width: "40.00%" }, // 변기 (오른쪽)
+    "items/item_065.png": { left: "77.73%", top: "80.66%", width: "24.55%" }, // 기니피그 (오른쪽)
+    "items/item_066.png": { left: "77.73%", top: "76.64%", width: "22.27%" }, // 여우 (오른쪽)
+    "items/item_067.png": { left: "74.55%", top: "78.47%", width: "20.00%" } // 모닥불 (오른쪽)
   };
 
   // 캐릭터 기본 이미지 위에 장착된 아이템들을 레이어로 겹쳐서 HTML을 만듦
