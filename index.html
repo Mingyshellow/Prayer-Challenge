@@ -935,6 +935,19 @@
     padding: 16px; margin: 14px 0; font-family:'Pretendard',sans-serif; font-size: 13.5px; color: var(--text-muted);
   }
   .retro-popup-amount { font-family:'Do Hyeon', sans-serif; font-size: 30px; color: var(--amber); margin: 10px 0; }
+
+  /* 달란트 획득 토스트 */
+  .talent-toast {
+    position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    z-index: 9999; background: var(--text); color: #fff; border-radius: 999px;
+    padding: 12px 20px; display:flex; align-items:center; gap:8px;
+    font-family:'Pretendard', sans-serif; font-weight:700; font-size: 14.5px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.22); opacity: 0; pointer-events:none;
+    transition: opacity .25s ease, transform .25s ease; max-width: calc(100% - 32px);
+  }
+  .talent-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .talent-toast .talent-toast-icon { font-size: 18px; }
+  .talent-toast .talent-toast-amount { color: var(--amber); font-family:'Do Hyeon', sans-serif; font-size: 16px; }
 </style>
 </head>
 <body class="login-mode">
@@ -1342,6 +1355,12 @@
       <div class="retro-popup-amount">지급된 달란트 : <span id="retro-popup-amount">0</span></div>
       <button class="primary-btn" onclick="closeRetroPopup()">확인</button>
     </div>
+  </div>
+
+  <!-- 달란트 획득 토스트 (기도문 작성, 미션 완료 등으로 달란트 늘었을 때 잠깐 떴다 사라짐) -->
+  <div class="talent-toast" id="talent-toast">
+    <span class="talent-toast-icon">🪙</span>
+    <span id="talent-toast-text">달란트 획득!</span>
   </div>
 
   <!-- 드레스룸 (풀스크린) -->
@@ -2246,7 +2265,7 @@
         photo_url: photoUrl ?? null
       });
       btn.disabled = false;
-      if (!error) { closeMissionModal(); await loadMissions(); }
+      if (!error) { closeMissionModal(); await loadMissions(); await refreshTalentAndNotify("미션 완료로"); }
       else alert("저장 중 오류가 발생했어요: " + error.message);
     }
   }
@@ -2601,6 +2620,35 @@
     document.getElementById("member-prayers-overlay").classList.add("active");
   }
 
+  // ---------------- 달란트 획득 토스트 ----------------
+  let talentToastTimer = null;
+  function showTalentToast(amount, label) {
+    if (!amount || amount <= 0) return;
+    const toast = document.getElementById("talent-toast");
+    const textEl = document.getElementById("talent-toast-text");
+    textEl.innerHTML = `${label ? label + " " : ""}<span class="talent-toast-amount">+${amount}</span> 달란트 획득!`;
+    clearTimeout(talentToastTimer);
+    toast.classList.add("show");
+    talentToastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2600);
+  }
+
+  // DB 트리거 등으로 달란트가 자동 지급되는 액션(기도문 작성, 미션 완료) 이후에 호출.
+  // 호출 전/후 잔액을 비교해서 늘어난 만큼만 토스트로 보여줌.
+  async function refreshTalentAndNotify(label) {
+    const before = currentUser.talentBalance ?? 0;
+    const { data: profile } = await activeClient
+      .from("profiles").select("talent_balance").eq("id", currentUser.id).single();
+    const after = profile?.talent_balance ?? before;
+    currentUser.talentBalance = after;
+
+    const balEl1 = document.getElementById("char-balance-display");
+    const balEl2 = document.getElementById("dress-balance-display");
+    if (balEl1) balEl1.textContent = after;
+    if (balEl2) balEl2.textContent = after;
+
+    if (after > before) showTalentToast(after - before, label);
+  }
+
   async function handleTicketWrite() {
     const errEl = document.getElementById("mp-write-error");
     const content = document.getElementById("mp-write-textarea").value.trim();
@@ -2634,6 +2682,7 @@
     await loadTotalPrayerCount();
     await loadStreak();
     await loadRecentPrayers();
+    await refreshTalentAndNotify("기도문 작성으로");
     openTicketView(currentUser.name, data, true);
   }
 
