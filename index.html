@@ -2857,21 +2857,21 @@
   // 이미지 파일은 청이와 공용(items/item_XXX.png)이고 위치%만 캐릭터별로 다름
   // 춘이 캐릭터 이미지 기준: 220x274 (여백 넉넉한 재교체 버전)
   const ITEM_POSITION_CHUNI = {
-    "items/item_001.png": { left: "10.00%", top: "68.25%", width: "70.91%" }, // 해적왕 지망생의 옷
-    "items/item_002.png": { left: "10.91%", top: "69.34%", width: "70.00%" }, // 기도열차 기사님의 옷
-    "items/item_003.png": { left: "12.27%", top: "67.15%", width: "69.55%" }, // 산타옷
-    "items/item_004.png": { left: "13.18%", top: "68.98%", width: "70.45%" }, // 정장
-    "items/item_005.png": { left: "10.91%", top: "68.98%", width: "73.64%" }, // 검사의 옷
-    "items/item_006.png": { left: "14.09%", top: "68.98%", width: "66.82%" }, // 못말리는 옷
-    "items/item_007.png": { left: "13.64%", top: "68.61%", width: "64.09%" }, // 스펀지 코스튬
-    "items/item_008.png": { left: "13.64%", top: "68.61%", width: "66.36%" }, // 못말리는 잠옷
-    "items/item_009.png": { left: "13.64%", top: "68.98%", width: "67.27%" }, // 인사성 밝은 고양이의 옷
-    "items/item_010.png": { left: "10.00%", top: "68.61%", width: "72.73%" }, // 최첨단 철제 갑옷
-    "items/item_011.png": { left: "0.45%", top: "65.33%", width: "92.27%" }, // 눈사람
-    "items/item_012.png": { left: "10.91%", top: "67.15%", width: "75.91%" }, // 카우보이 옷
-    "items/item_013.png": { left: "16.82%", top: "68.61%", width: "62.27%" }, // 멜빵바지
-    "items/item_014.png": { left: "16.36%", top: "67.15%", width: "81.82%" }, // 골리앗 카운터
-    "items/item_015.png": { left: "-2.73%", top: "4.38%", width: "90.00%" }, // 곰돌이 후드티
+    "items/item_001.png": { left: "10.00%", top: "68.25%", width: "62.73%" }, // 해적왕 지망생의 옷 (춘이 전용 이미지)
+    "items/item_002.png": { left: "10.91%", top: "69.34%", width: "60.91%" }, // 기도열차 기사님의 옷 (춘이 전용 이미지)
+    "items/item_003.png": { left: "12.27%", top: "67.15%", width: "59.55%" }, // 산타옷 (춘이 전용 이미지)
+    "items/item_004.png": { left: "13.18%", top: "68.98%", width: "57.73%" }, // 정장 (춘이 전용 이미지)
+    "items/item_005.png": { left: "10.91%", top: "68.98%", width: "61.36%" }, // 검사의 옷 (춘이 전용 이미지)
+    "items/item_006.png": { left: "14.09%", top: "68.98%", width: "56.36%" }, // 못말리는 옷 (춘이 전용 이미지)
+    "items/item_007.png": { left: "13.64%", top: "68.61%", width: "60.00%" }, // 스펀지 코스튬 (춘이 전용 이미지)
+    "items/item_008.png": { left: "13.64%", top: "68.61%", width: "56.36%" }, // 못말리는 잠옷 (춘이 전용 이미지)
+    "items/item_009.png": { left: "13.64%", top: "68.98%", width: "57.73%" }, // 인사성 밝은 고양이의 옷 (춘이 전용 이미지)
+    "items/item_010.png": { left: "10.00%", top: "68.61%", width: "64.55%" }, // 최첨단 철제 갑옷 (춘이 전용 이미지)
+    "items/item_011.png": { left: "0.45%", top: "65.33%", width: "80.91%" }, // 눈사람 (춘이 전용 이미지)
+    "items/item_012.png": { left: "10.91%", top: "67.15%", width: "60.91%" }, // 카우보이 옷 (춘이 전용 이미지)
+    "items/item_013.png": { left: "16.82%", top: "68.61%", width: "53.18%" }, // 멜빵바지 (춘이 전용 이미지)
+    "items/item_014.png": { left: "16.36%", top: "67.15%", width: "67.73%" }, // 골리앗 카운터 (춘이 전용 이미지)
+    "items/item_015.png": { left: "-2.73%", top: "4.38%", width: "89.09%" }, // 곰돌이 후드티 (춘이 전용 이미지)
     "items/item_016.png": { left: "-5.00%", top: "6.93%", width: "96.82%" }, // 기관사 모자
     "items/item_017.png": { left: "1.36%", top: "4.74%", width: "86.36%" }, // 비니
     "items/item_018.png": { left: "-15.91%", top: "-4.01%", width: "124.09%" }, // 카우보이 모자
@@ -2926,6 +2926,26 @@
     "items/item_067.png": { left: "74.55%", top: "78.47%", width: "20.00%" } // 모닥불 (오른쪽)
   };
 
+  // 의상처럼 캐릭터 몸에 딱 맞게 그려야 하는 아이템은 청이/춘이용 그림이 서로 다름.
+  // 춘이 전용 그림이 준비된 아이템만 여기에 매핑 — 없는 아이템은 기존 공용 이미지(청이 기준)를 그대로 재사용
+  const ITEM_IMAGE_CHUNI_OVERRIDE = {
+    "items/item_001.png": "items/item_001_chuni.png", // 해적왕 지망생의 옷
+    "items/item_002.png": "items/item_002_chuni.png", // 기도열차 기사님의 옷
+    "items/item_003.png": "items/item_003_chuni.png", // 산타옷
+    "items/item_004.png": "items/item_004_chuni.png", // 정장
+    "items/item_005.png": "items/item_005_chuni.png", // 검사의 옷
+    "items/item_006.png": "items/item_006_chuni.png", // 못말리는 옷
+    "items/item_007.png": "items/item_007_chuni.png", // 스펀지 코스튬
+    "items/item_008.png": "items/item_008_chuni.png", // 못말리는 잠옷
+    "items/item_009.png": "items/item_009_chuni.png", // 인사성 밝은 고양이의 옷
+    "items/item_010.png": "items/item_010_chuni.png", // 최첨단 철제 갑옷
+    "items/item_011.png": "items/item_011_chuni.png", // 눈사람
+    "items/item_012.png": "items/item_012_chuni.png", // 카우보이 옷
+    "items/item_013.png": "items/item_013_chuni.png", // 멜빵바지
+    "items/item_014.png": "items/item_014_chuni.png", // 골리앗 카운터
+    "items/item_015.png": "items/item_015_chuni.png" // 곰돌이 후드티
+  };
+
   // 캐릭터 기본 이미지 위에 장착된 아이템들을 레이어로 겹쳐서 HTML을 만듦
   // 피그마에서 실측한 좌표가 있는 아이템만 비주얼로 보여지고, 좌표 없는 아이템은 데이터만 저장되고 비주얼엔 안 나옴
   function buildCharStackHTML(charType, equippedMap, itemLookup) {
@@ -2939,8 +2959,9 @@
       const pos = posTable[item.image_url];
       if (!pos) return ""; // 좌표 아직 없는 아이템은 비주얼 생략
       const zIndex = ITEM_LAYER_ZINDEX[cat] || 3;
+      const imgSrc = (charType === "춘이" && ITEM_IMAGE_CHUNI_OVERRIDE[item.image_url]) || item.image_url;
       const styleStr = `top:${pos.top}; left:${pos.left}; width:${pos.width}; z-index:${zIndex};`;
-      return `<img class="char-stack-layer" src="${item.image_url}" alt="${item.name || ""}" style="${styleStr}" />`;
+      return `<img class="char-stack-layer" src="${imgSrc}" alt="${item.name || ""}" style="${styleStr}" />`;
     }).join("");
     return `<div class="char-stack"><img class="char-stack-base" src="${baseSrc}" alt="${charType || ""}" />${layers}</div>`;
   }
