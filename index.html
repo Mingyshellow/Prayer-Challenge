@@ -1040,7 +1040,7 @@
       </div>
 
       <!-- 2.5 최근 기도문 피드 -->
-      <div class="dash-block">
+      <div class="dash-block" id="recent-prayers-block">
         <h3 class="dash-title">최근 기도문 <span class="podium-tap-hint">(눌러서 전체 기도문 보기)</span></h3>
         <div class="recent-prayers-list" id="recent-prayers-list"></div>
       </div>
@@ -1126,7 +1126,7 @@
           <div class="char-avatar-wrap" id="char-avatar-wrap"></div>
           <div class="char-action-row">
             <button class="char-action-btn" onclick="openDressRoom()">드레스룸</button>
-            <button class="char-action-btn" onclick="switchTab('journey')">나의 기도</button>
+            <button class="char-action-btn" onclick="goToRecentPrayers()">나의 기도</button>
           </div>
         </div>
       </div>
@@ -2755,6 +2755,15 @@
     if (tab === "mission") loadMissions();
     if (tab === "journey") loadTrainList();
     if (tab === "character") loadCharacterTab();
+  }
+
+  // "나의 기도" 버튼 - 대시보드 탭의 "최근 기도문" 영역으로 이동
+  function goToRecentPrayers() {
+    switchTab("dashboard");
+    setTimeout(() => {
+      const el = document.getElementById("recent-prayers-block");
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 60);
   }
 
   // ================================================
