@@ -1897,8 +1897,7 @@
         slot.countEl.textContent = "";
         return;
       }
-      const tiePrefix = rows.length > 1 ? "공동 " : "";
-      slot.nameEl.textContent = tiePrefix + rows.map(r => `${r["목장"]} - ${r["이름"]}`).join(" · ");
+      slot.nameEl.textContent = rows.map(r => r["이름"]).join(" · ");
       slot.countEl.textContent = `이번 주 ${rows[0]["총참여횟수"]}회`;
     });
   }
